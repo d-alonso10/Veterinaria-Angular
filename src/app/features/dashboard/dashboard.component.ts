@@ -1,13 +1,68 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { ApiService } from '../../core/services/api.service';
+import { IAtencion, IReporteIngresos } from '../../core/models/models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent {
+  citasHoy: number = 0;
+  atencionesEnCurso: number = 0;
+  ingresosDia: number = 0;
+  totalClientes: number = 0;
 
+  constructor(
+    private apiService: ApiService,
+    private notificationService: NotificationService
+  ) {}
+
+  ngOnInit() {
+    this.loadStats();
+  }
+
+  loadStats() {
+    // 1. Citas del Día (Mocked endpoint or real if exists)
+    // Assuming GET /api/dashboard/citas-hoy returns a count or list
+    this.apiService.get<any>('/dashboard/citas-hoy').subscribe({
+      next: (res) => {
+        if (res.exito) this.citasHoy = res.datos;
+      },
+      error: () => this.citasHoy = 0 // Fail silently or show error
+    });
+
+    // 2. Atenciones en Curso
+    this.apiService.get<IAtencion[]>('/atenciones', { estado: 'EN_PROCESO' }).subscribe({
+      next: (res) => {
+        if (res.exito && res.datos) {
+          this.atencionesEnCurso = res.datos.length;
+        }
+      }
+    });
+
+    // 3. Ingresos del Día
+    const today = new Date().toISOString().split('T')[0];
+    this.apiService.get<IReporteIngresos>(`/reportes/ingresos?fecha=${today}`).subscribe({
+      next: (res) => {
+        if (res.exito && res.datos) {
+          this.ingresosDia = res.datos.totalIngresos;
+        }
+      }
+    });
+
+    // 4. Total Clientes
+    this.apiService.get<any[]>('/clientes').subscribe({
+      next: (res) => {
+        if (res.exito && res.datos) {
+          this.totalClientes = res.datos.length;
+        }
+      }
+    });
+  }
 }

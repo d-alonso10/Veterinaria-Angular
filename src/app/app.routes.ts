@@ -32,6 +32,18 @@ export const routes: Routes = [
       {
         path: 'clients/:id',
         loadComponent: () => import('./features/clients/client-form/client-form.component').then(m => m.ClientFormComponent)
+      },
+      {
+        path: 'pets',
+        loadComponent: () => import('./features/pets/mascota-list/mascota-list.component').then(m => m.MascotaListComponent)
+      },
+      {
+        path: 'pets/new',
+        loadComponent: () => import('./features/pets/mascota-form/mascota-form.component').then(m => m.MascotaFormComponent)
+      },
+      {
+        path: 'pets/:id',
+        loadComponent: () => import('./features/pets/mascota-form/mascota-form.component').then(m => m.MascotaFormComponent)
       }
     ]
   },

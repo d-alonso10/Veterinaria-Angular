@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { Cliente } from '../../../core/models/client.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-client-list',
@@ -14,7 +15,10 @@ import { Cliente } from '../../../core/models/client.model';
 export class ClientListComponent implements OnInit {
   clientes: Cliente[] = [];
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadClientes();
@@ -36,5 +40,23 @@ export class ClientListComponent implements OnInit {
         ];
       }
     });
+  }
+
+  deleteClient(id: number) {
+    if (confirm('¿Está seguro de eliminar este cliente?')) {
+      this.apiService.delete(`/clientes/${id}`).subscribe({
+        next: (response) => {
+          if (response.exito) {
+            this.notificationService.success('Cliente eliminado correctamente');
+            this.loadClientes();
+          } else {
+            this.notificationService.error(response.mensaje || 'Error al eliminar cliente');
+          }
+        },
+        error: () => {
+          this.notificationService.error('Error al eliminar cliente');
+        }
+      });
+    }
   }
 }

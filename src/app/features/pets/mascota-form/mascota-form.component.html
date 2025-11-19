@@ -1,0 +1,70 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px;">
+        <h2>{{ isEditing ? 'Editar Mascota' : 'Nueva Mascota' }}</h2>
+    </div>
+
+    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
+        <form [formGroup]="mascotaForm" (ngSubmit)="onSubmit()">
+
+            <div class="form-group">
+                <label for="idCliente">Dueño (Cliente)</label>
+                <select id="idCliente" formControlName="idCliente" class="form-control">
+                    <option value="">Seleccione un cliente</option>
+                    @for (cliente of clientes; track cliente.idCliente) {
+                        <option [value]="cliente.idCliente">{{ cliente.nombre }} {{ cliente.apellido }} - {{ cliente.dniRuc }}</option>
+                    }
+                </select>
+                @if (mascotaForm.get('idCliente')?.invalid && (mascotaForm.get('idCliente')?.dirty || mascotaForm.get('idCliente')?.touched)) {
+                    <div class="error-message">El dueño es requerido</div>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" formControlName="nombre" class="form-control" placeholder="Nombre de la mascota">
+                @if (mascotaForm.get('nombre')?.invalid && (mascotaForm.get('nombre')?.dirty || mascotaForm.get('nombre')?.touched)) {
+                    <div class="error-message">El nombre es requerido</div>
+                }
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="especie">Especie</label>
+                    <select id="especie" formControlName="especie" class="form-control">
+                        <option value="">Seleccione especie</option>
+                        <option value="Perro">Perro</option>
+                        <option value="Gato">Gato</option>
+                        <option value="Ave">Ave</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                    @if (mascotaForm.get('especie')?.invalid && (mascotaForm.get('especie')?.dirty || mascotaForm.get('especie')?.touched)) {
+                        <div class="error-message">La especie es requerida</div>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label for="raza">Raza</label>
+                    <input type="text" id="raza" formControlName="raza" class="form-control" placeholder="Raza">
+                    @if (mascotaForm.get('raza')?.invalid && (mascotaForm.get('raza')?.dirty || mascotaForm.get('raza')?.touched)) {
+                        <div class="error-message">La raza es requerida</div>
+                    }
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="fechaNacimiento">Fecha de Nacimiento</label>
+                <input type="date" id="fechaNacimiento" formControlName="fechaNacimiento" class="form-control">
+                @if (mascotaForm.get('fechaNacimiento')?.invalid && (mascotaForm.get('fechaNacimiento')?.dirty || mascotaForm.get('fechaNacimiento')?.touched)) {
+                    <div class="error-message">La fecha de nacimiento es requerida</div>
+                }
+            </div>
+
+            <div class="form-actions">
+                <button type="button" routerLink="/pets" class="btn btn-secondary" style="background-color: #95a5a6; color: white;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" [disabled]="mascotaForm.invalid || isLoading">
+                    {{ isLoading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Guardar') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
