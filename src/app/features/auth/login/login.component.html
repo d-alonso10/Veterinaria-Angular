@@ -1,0 +1,37 @@
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo-placeholder">🐾</div>
+            <h2>Bienvenido</h2>
+            <p>Sistema Veterinario</p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" formControlName="username" class="form-control" placeholder="Ingrese su usuario">
+                @if (loginForm.get('username')?.invalid && loginForm.get('username')?.touched) {
+                    <small class="error-text">El usuario es requerido</small>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" formControlName="password" class="form-control" placeholder="Ingrese su contraseña">
+                @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+                    <small class="error-text">La contraseña es requerida</small>
+                }
+            </div>
+
+            @if (errorMessage) {
+                <div class="error-banner">
+                    {{ errorMessage }}
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary btn-block" [disabled]="loginForm.invalid || isLoading">
+                {{ isLoading ? 'Ingresando...' : 'Iniciar Sesión' }}
+            </button>
+        </form>
+    </div>
+</div>
