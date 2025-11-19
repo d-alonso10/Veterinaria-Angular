@@ -1,0 +1,38 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex;">
+        <h2>Listado de Clientes</h2>
+        <button class="btn btn-primary">➕ Nuevo Cliente</button>
+    </div>
+
+    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
+                    <th style="padding: 12px;">Nombre</th>
+                    <th style="padding: 12px;">DNI/RUC</th>
+                    <th style="padding: 12px;">Email</th>
+                    <th style="padding: 12px;">Teléfono</th>
+                    <th style="padding: 12px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (cliente of clientes; track cliente.idCliente) {
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 12px;">{{ cliente.nombre }} {{ cliente.apellido }}</td>
+                        <td style="padding: 12px;">{{ cliente.dniRuc }}</td>
+                        <td style="padding: 12px;">{{ cliente.email }}</td>
+                        <td style="padding: 12px;">{{ cliente.telefono }}</td>
+                        <td style="padding: 12px;">
+                            <button class="btn btn-info btn-small" style="margin-right: 5px;">Editar</button>
+                            <button class="btn btn-danger btn-small" style="background-color: var(--danger-color); color: white;">Eliminar</button>
+                        </td>
+                    </tr>
+                } @empty {
+                    <tr>
+                        <td colspan="5" style="padding: 20px; text-align: center; color: var(--text-light);">No hay clientes registrados.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

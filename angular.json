@@ -64,7 +64,8 @@
               "buildTarget": "veterinaria-frontend:build:production"
             },
             "development": {
-              "buildTarget": "veterinaria-frontend:build:development"
+              "buildTarget": "veterinaria-frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
@@ -93,5 +94,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

@@ -1,0 +1,75 @@
+<div class="container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <h1><span class="logo-icon">🐾</span> TeranVet</h1>
+    </div>
+
+    <div class="user-info">
+      <div class="user-avatar">U</div>
+      <div class="user-details">
+        <h3>Usuario Sistema</h3>
+        <p>Administrador</p>
+      </div>
+    </div>
+
+    <ul class="menu">
+      <div class="menu-section">Principal</div>
+      <li class="menu-item" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <a routerLink="/dashboard">
+          <span class="menu-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <div class="menu-section">Gestionar</div>
+      <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/clients">
+          <span class="menu-icon">👥</span>
+          <span>Clientes</span>
+        </a>
+      </li>
+      <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/pets">
+          <span class="menu-icon">🐾</span>
+          <span>Mascotas</span>
+        </a>
+      </li>
+      <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/appointments">
+          <span class="menu-icon">📅</span>
+          <span>Citas</span>
+        </a>
+      </li>
+      <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/payments">
+          <span class="menu-icon">💳</span>
+          <span>Pagos</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <div class="header">
+      <div class="header-top">
+        <div class="welcome">
+          <h1>📊 Dashboard Principal</h1>
+          <p>
+            Resumen completo del sistema -
+            <span id="current-time-placeholder">{{ currentDate | date : 'fullDate' }}</span>
+          </p>
+        </div>
+        <div class="header-actions">
+          <a href="#" class="btn btn-success">➕ Nueva Cita</a>
+          <a href="#" class="btn btn-primary">👤 Agregar Cliente</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
