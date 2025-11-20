@@ -1,65 +1,133 @@
----
----
-
-## 🛠️ PROMPT DETALLADO: PLAN DE ACCIÓN Y CONEXIÓN MASIVA
-
-**Para:** Equipo de Desarrollo Frontend (Angular)
-**Estado Actual:** Estructura completa. Autenticación y Cliente CRUD (List/Form) implementados con _mock data_.
-**Objetivo Inmediato:** Implementar el flujo de JWT y poblar el Dashboard con datos reales.
-
-### I. RECONOCIMIENTO Y CRÍTICA AL AVANCE (Fase 1: Estructura)
-
-| Avance Clave            | Detalle y Estado                                                                        | Nota de Retroalimentación                                                                                          |
-| :---------------------- | :-------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| **Arquitectura Base**   | `MainLayoutComponent`, `Sidebar`, `Header` y estilos (`src/styles.css`) correctos.      | **Excelente.** La estructura modular es moderna y está lista para el diseño de `plantilla_menu.html`.              |
-| **Autenticación/Rutas** | `LoginComponent` y `AuthGuard` implementados. JWT se almacena en `localStorage`.        | **Logro Crítico.** El sistema está protegido. Ahora falta el mecanismo que usa ese token.                          |
-| **Módulo Clientes**     | `ClientListComponent` y `ClientFormComponent` (incluyendo la edición por `:id`) listos. | **Listo para Integración.** Este módulo será la primera prueba de fuego del **CRUD** completo contra el _backend_. |
+.
 
 ---
 
-### II. PLAN DE ACCIÓN: PRIORIDAD MÁXIMA (CONEXIÓN SEGURA)
+## 📋 INFORME DE AUDITORÍA Y CORRECCIÓN: FRONTEND VETERINARIA
 
-El informe del equipo **no menciona** el componente que envía el JWT de vuelta al servidor. Esta es la tarea **CRÍTICA** que bloquea el consumo de todos los _endpoints_ protegidos.
+**Estado Real:** Funcionalidad 90% | Robustez 50%
+**Prioridad:** Alta (Bloqueantes para Producción)
 
-#### Tarea Bloqueante 1: Implementación del Interceptor JWT
+He revisado tu informe de progreso y el código. Buen trabajo con la estructura visual y la seguridad básica. Sin embargo, existen **errores de integración** que causarán fallos en tiempo de ejecución y problemas de despliegue.
 
-El _backend_ de Spring Boot utiliza _Spring Security_ y JWT para proteger todas las rutas bajo `/api/`. Sin el `HttpInterceptor`, el _backend_ devolverá un error **401 (Unauthorized)** a todas las peticiones a `/api/clientes`, `/api/dashboard`, etc.
-
-| Acción                             | Archivos Involucrados                          | Justificación                                                                                                                                                                 |
-| :--------------------------------- | :--------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1. Crear `JwtInterceptor`**      | `src/app/core/interceptors/jwt.interceptor.ts` | Este _interceptor_ debe tomar el token del `localStorage` y adjuntarlo automáticamente a **cada solicitud HTTP** que vaya al _backend_ (rutas que contengan `/api`).          |
-| **2. Registro en `app.config.ts`** | `app.config.ts`                                | Registrar el `JwtInterceptor` en el arreglo de `providers` para que Angular lo ejecute en cada petición.                                                                      |
-| **3. Mapeo en Sidebar**            | `AuthService`, `SidebarComponent`              | Asegurarse de que el `AuthService` (tras el login) decodifique el token para obtener el `Nombre` y `Rol` y lo exponga como un `Observable` para poblar el `SidebarComponent`. |
-
-#### Tarea Bloqueante 2: Consumo de Clientes y Manejo de Errores
-
-El módulo `Clientes` debe ser la primera integración completa (CRUD) para validar todo el flujo de JWT, el `ApiService` y la respuesta del servidor.
-
-| Acción                        | Endpoint Backend             | Detalle de Implementación                                                                                                                                                                                                                                                                                                        |
-| :---------------------------- | :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1. Listado Real**           | `GET /api/clientes`          | Implementar `ClientListComponent` para consumir esta ruta, reemplazando la data _mock_ de la tabla.                                                                                                                                                                                                                              |
-| **2. Formulario Real (POST)** | `POST /api/clientes`         | Conectar `ClientFormComponent` para enviar objetos `Cliente` (o `ClienteDTO`) al _backend_.                                                                                                                                                                                                                                      |
-| **3. Manejo de Errores**      | **`GlobalExceptionHandler`** | **CRÍTICO.** Implementar un **`ErrorInterceptor`** o modificar el `ApiService` para: **a.** Capturar el `401 Unauthorized` y redirigir al `/login`. **b.** Capturar `400/500` y extraer el mensaje de error de la estructura JSON del _backend_ (`ApiResponse.mensaje`) para mostrarlo en una _message-banner_ de tipo `.error`. |
+Debes ejecutar el siguiente plan de corrección inmediata.
 
 ---
 
-### IV. PLAN DE DESARROLLO DE MÓDULOS (Roadmap Secuencial)
+### 🔴 ERROR 1: URL de API "Hardcodeada" (Rompe el Proxy)
 
-Una vez que el módulo `Clientes` sea estable y se confirme que el `JwtInterceptor` funciona, el desarrollo debe continuar con los módulos de valor:
+**Archivo:** `src/app/core/services/api.service.ts`
 
-#### FASE 3: Llenado del Dashboard y Modelado de Datos
+**El Error:**
+Tienes esto: `private baseUrl = 'http://localhost:8080/api';`
+Esto **ignora** el archivo `proxy.conf.json` que configuramos. Al poner la URL completa, Angular intenta ir directo al backend, saltándose el proxy. Esto funcionará en tu casa, pero fallará en cualquier otro entorno o causará problemas de CORS innecesarios.
 
-| Módulo / Componente | Endpoint Backend                                 | Tarea a Implementar                                                                                                                                                                                                                                  |
-| :------------------ | :----------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **DASHBOARD**       | **`GET /api/dashboard/citas-hoy`**               | Población real de la tarjeta "Citas del Día".                                                                                                                                                                                                        |
-| **DASHBOARD**       | **`GET /api/atenciones?estado=en_servicio`**     | Población real de la tarjeta "Atenciones en Curso".                                                                                                                                                                                                  |
-| **DASHBOARD**       | **`GET /api/reportes/ingresos?fechaInicio=...`** | Población real de la tarjeta "Ingresos del Día". **ATENCIÓN:** El _backend_ devuelve `List<Object[]>` para reportes. El _frontend_ debe crear una interfaz TypeScript (`IReporteIngresosDTO`) para mapear manualmente este array antes de mostrarlo. |
-| **MODELOS**         | **Tipado de Datos**                              | Crear las interfaces TypeScript (`IMascota`, `IAtencion`, `ICita`) para cada una de las entidades del _backend_ (revisar los DTOs de Java para mapear correctamente).                                                                                |
+**Corrección Requerida:**
 
-#### FASE 4: Flujo Principal de Gestión
+1.  Crea los archivos de entorno (si no existen):
+    - `src/environments/environment.ts`:
+      ```typescript
+      export const environment = { production: false, apiUrl: '/api' }; // Nota: URL relativa
+      ```
+    - `src/environments/environment.prod.ts`:
+      ```typescript
+      export const environment = { production: true, apiUrl: '/api' };
+      ```
+2.  **Refactoriza `ApiService`:**
+    ```typescript
+    import { environment } from '../../../environments/environment';
+    // ...
+    private baseUrl = environment.apiUrl; // Usará '/api', activando el proxy correctamente
+    ```
 
-| Módulo / Ruta  | Endpoint Backend                              | Detalle de la Tarea                                                                                                                                                                                                           |
-| :------------- | :-------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **MASCOTAS**   | `/api/mascotas` `/api/clientes/{id}/mascotas` | Crear `MascotasListComponent` y `MascotaFormComponent`. Implementar la funcionalidad donde el formulario de mascota permita seleccionar un cliente existente (usando un _autocomplete_ o _select_ que liste `/api/clientes`). |
-| **ATENCIONES** | `/api/atenciones/cola/{idSucursal}`           | Crear el `AtencionColaComponent`. Implementar la **actualización continua** (usando el patrón _polling_ o _interval_) para mostrar la cola de atención en tiempo real.                                                        |
-| **REPORTES**   | `/api/groomers/tiempos-promedio`              | Crear el componente de reportes. Implementar la captura de fechas (`LocalDate`) y el consumo del _endpoint_ de reporte (que devuelve `List<Object[]}`) para visualizarlo en una tabla.                                        |
+---
+
+### 🔴 ERROR 2: Incompatibilidad de Tipos en Reportes (Array vs Objeto)
+
+**Archivos:** `DashboardComponent`, `ReporteTiemposComponent`, `ReporteIngresos`
+
+**El Error:**
+El backend (Spring Boot + JPA Native Query) devuelve los reportes como **Listas de Arrays (`List<Object[]>`)**, NO como listas de objetos JSON con nombres.
+
+- Backend envía: `[ ["2023-11-20", 500.00], ["2023-11-21", 300.00] ]`
+- Tu Frontend espera: `[ { fecha: "...", total: 500 }, ... ]`
+
+Si intentas hacer `item.total` en el HTML, obtendrás `undefined` o un error en blanco.
+
+**Corrección Requerida:**
+Debes crear **"Mappers" (Adaptadores)** en el servicio o componente para transformar el Array crudo en un Objeto útil.
+
+**Ejemplo para `DashboardComponent` (Gráfico de Ingresos):**
+
+```typescript
+// En el subscribe del servicio:
+this.dashboardService.obtenerIngresos().subscribe((response) => {
+  if (response.exito) {
+    // MAPEO MANUAL REQUERIDO:
+    // Asumiendo index 0 = Fecha, index 1 = Monto (Revisar orden en SP)
+    this.ingresosData = response.datos.map((item: any[]) => ({
+      fecha: item[0],
+      monto: item[1],
+    }));
+  }
+});
+```
+
+_Aplica esto para: Tiempos Promedio, Ocupación y cualquier reporte nativo._
+
+---
+
+### 🟠 ERROR 3: Fuga de Memoria en "Cola de Atención"
+
+**Archivo:** `src/app/features/atenciones/atencion-cola/atencion-cola.component.ts`
+
+**El Error:**
+El informe menciona "Polling cada 30s". Si usas `setInterval` o `timer` sin limpiarlo, cuando el usuario cambie de pestaña (ej. vaya a "Clientes"), el navegador **seguirá pidiendo la cola de atención en segundo plano** infinitamente. Esto ralentiza la app.
+
+**Corrección Requerida:**
+Implementar el patrón `OnDestroy`:
+
+```typescript
+export class AtencionColaComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>(); // Necesitas importar Subject de rxjs
+
+  ngOnInit() {
+    timer(0, 30000) // Inicia en 0, repite cada 30s
+      .pipe(takeUntil(this.destroy$)) // Se detiene automáticamente al destruir
+      .subscribe(() => this.cargarCola());
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+}
+```
+
+---
+
+### 🟡 ERROR 4: Feedback de Usuario (UX)
+
+**Archivos:** `ClientFormComponent`, `MascotaFormComponent`
+
+**El Error:**
+Al guardar, si el internet es lento, el usuario puede hacer clic 5 veces en "Guardar". No hay indicación visual de que algo está pasando.
+
+**Corrección Requerida:**
+
+1.  Agrega una variable `isSubmitting = false`.
+2.  Al inicio de `guardar()`: `this.isSubmitting = true;`
+3.  En el botón del HTML: `[disabled]="form.invalid || isSubmitting"` y cambia el texto a "Guardando..." si es true.
+4.  En el `finalize` del observable: `this.isSubmitting = false;`.
+
+---
+
+### ✅ RESUMEN DE TAREAS RESTANTES (Checklist Final)
+
+Para dar el proyecto por "Terminado y Libre de Errores", completa:
+
+1.  [ ] **Refactor API URL:** Cambiar a `/api` y usar environments.
+2.  [ ] **Mappers de Reportes:** Corregir la lectura de `List<Object[]>` en todos los gráficos/tablas de reportes.
+3.  [ ] **Fix Memory Leaks:** Añadir `ngOnDestroy` en la Cola de Atención.
+4.  [ ] **Loading States:** Bloquear botones al enviar formularios.
+
+Una vez corregido esto, el frontend estará sincronizado perfectamente con la realidad técnica de tu backend.

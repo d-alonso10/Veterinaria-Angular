@@ -16,6 +16,7 @@ export class ClientFormComponent implements OnInit {
   clientForm: FormGroup;
   isEditing = false;
   clientId: number | null = null;
+  isLoading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -56,25 +57,34 @@ export class ClientFormComponent implements OnInit {
 
   onSubmit() {
     if (this.clientForm.valid) {
+      this.isLoading = true;
       const clientData: Cliente = this.clientForm.value;
 
       if (this.isEditing && this.clientId) {
         this.apiService.put<Cliente>(`/clientes/${this.clientId}`, clientData).subscribe({
           next: (response: any) => {
+            this.isLoading = false;
             if (response.exito) {
               this.router.navigate(['/clients']);
             }
           },
-          error: (err: any) => console.error('Error updating client', err)
+          error: (err: any) => {
+            this.isLoading = false;
+            console.error('Error updating client', err);
+          }
         });
       } else {
         this.apiService.post<Cliente>('/clientes', clientData).subscribe({
           next: (response: any) => {
+            this.isLoading = false;
             if (response.exito) {
               this.router.navigate(['/clients']);
             }
           },
-          error: (err: any) => console.error('Error creating client', err)
+          error: (err: any) => {
+            this.isLoading = false;
+            console.error('Error creating client', err);
+          }
         });
       }
     }

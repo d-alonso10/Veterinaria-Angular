@@ -1,68 +1,115 @@
 <div class="main-content">
-    <div class="header-actions" style="margin-bottom: 20px;">
-        <h2>{{ isEditing ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
-    </div>
+  <div class="header-actions" style="margin-bottom: 20px">
+    <h2>{{ isEditing ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
+  </div>
 
-    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
-        <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <div
+    class="card"
+    style="
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      margin: 0 auto;
+    "
+  >
+    <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
+        <div class="form-group">
+          <label for="nombre">Nombre</label>
+          <input
+            type="text"
+            id="nombre"
+            formControlName="nombre"
+            class="form-control"
+            placeholder="Ej: Juan"
+          />
+          @if (clientForm.get('nombre')?.invalid && clientForm.get('nombre')?.touched) {
+          <small class="error-text">El nombre es requerido</small>
+          }
+        </div>
 
-                <div class="form-group">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" formControlName="nombre" class="form-control" placeholder="Ej: Juan">
-                    @if (clientForm.get('nombre')?.invalid && clientForm.get('nombre')?.touched) {
-                        <small class="error-text">El nombre es requerido</small>
-                    }
-                </div>
+        <div class="form-group">
+          <label for="apellido">Apellido</label>
+          <input
+            type="text"
+            id="apellido"
+            formControlName="apellido"
+            class="form-control"
+            placeholder="Ej: Perez"
+          />
+          @if (clientForm.get('apellido')?.invalid && clientForm.get('apellido')?.touched) {
+          <small class="error-text">El apellido es requerido</small>
+          }
+        </div>
 
-                <div class="form-group">
-                    <label for="apellido">Apellido</label>
-                    <input type="text" id="apellido" formControlName="apellido" class="form-control" placeholder="Ej: Perez">
-                    @if (clientForm.get('apellido')?.invalid && clientForm.get('apellido')?.touched) {
-                        <small class="error-text">El apellido es requerido</small>
-                    }
-                </div>
+        <div class="form-group">
+          <label for="dniRuc">DNI / RUC</label>
+          <input
+            type="text"
+            id="dniRuc"
+            formControlName="dniRuc"
+            class="form-control"
+            placeholder="Ej: 12345678"
+          />
+          @if (clientForm.get('dniRuc')?.invalid && clientForm.get('dniRuc')?.touched) {
+          <small class="error-text">DNI/RUC requerido</small>
+          }
+        </div>
 
-                <div class="form-group">
-                    <label for="dniRuc">DNI / RUC</label>
-                    <input type="text" id="dniRuc" formControlName="dniRuc" class="form-control" placeholder="Ej: 12345678">
-                    @if (clientForm.get('dniRuc')?.invalid && clientForm.get('dniRuc')?.touched) {
-                        <small class="error-text">DNI/RUC requerido</small>
-                    }
-                </div>
+        <div class="form-group">
+          <label for="telefono">Teléfono</label>
+          <input
+            type="text"
+            id="telefono"
+            formControlName="telefono"
+            class="form-control"
+            placeholder="Ej: 999888777"
+          />
+          @if (clientForm.get('telefono')?.invalid && clientForm.get('telefono')?.touched) {
+          <small class="error-text">Teléfono requerido</small>
+          }
+        </div>
 
-                <div class="form-group">
-                    <label for="telefono">Teléfono</label>
-                    <input type="text" id="telefono" formControlName="telefono" class="form-control" placeholder="Ej: 999888777">
-                    @if (clientForm.get('telefono')?.invalid && clientForm.get('telefono')?.touched) {
-                        <small class="error-text">Teléfono requerido</small>
-                    }
-                </div>
+        <div class="form-group" style="grid-column: span 2">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="form-control"
+            placeholder="Ej: juan@example.com"
+          />
+          @if (clientForm.get('email')?.invalid && clientForm.get('email')?.touched) {
+          <small class="error-text">Email válido requerido</small>
+          }
+        </div>
 
-                <div class="form-group" style="grid-column: span 2;">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" formControlName="email" class="form-control" placeholder="Ej: juan@example.com">
-                    @if (clientForm.get('email')?.invalid && clientForm.get('email')?.touched) {
-                        <small class="error-text">Email válido requerido</small>
-                    }
-                </div>
+        <div class="form-group" style="grid-column: span 2">
+          <label for="direccion">Dirección</label>
+          <input
+            type="text"
+            id="direccion"
+            formControlName="direccion"
+            class="form-control"
+            placeholder="Ej: Av. Principal 123"
+          />
+          @if (clientForm.get('direccion')?.invalid && clientForm.get('direccion')?.touched) {
+          <small class="error-text">Dirección requerida</small>
+          }
+        </div>
+      </div>
 
-                <div class="form-group" style="grid-column: span 2;">
-                    <label for="direccion">Dirección</label>
-                    <input type="text" id="direccion" formControlName="direccion" class="form-control" placeholder="Ej: Av. Principal 123">
-                    @if (clientForm.get('direccion')?.invalid && clientForm.get('direccion')?.touched) {
-                        <small class="error-text">Dirección requerida</small>
-                    }
-                </div>
-
-            </div>
-
-            <div class="form-actions" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 15px;">
-                <button type="button" class="btn btn-warning" (click)="cancel()">Cancelar</button>
-                <button type="submit" class="btn btn-success" [disabled]="clientForm.invalid">
-                    {{ isEditing ? 'Actualizar' : 'Guardar' }}
-                </button>
-            </div>
-        </form>
-    </div>
+      <div
+        class="form-actions"
+        style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 15px"
+      >
+        <button type="button" class="btn btn-warning" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn btn-success" [disabled]="clientForm.invalid || isLoading">
+          {{ isLoading ? 'Guardando...' : isEditing ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

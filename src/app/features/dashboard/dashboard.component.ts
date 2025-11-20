@@ -48,10 +48,13 @@ export class DashboardComponent {
 
     // 3. Ingresos del Día
     const today = new Date().toISOString().split('T')[0];
-    this.apiService.get<IReporteIngresos>(`/reportes/ingresos?fechaInicio=${today}`).subscribe({
-      next: (res: ApiResponse<IReporteIngresos>) => {
+    this.apiService.get<any[]>(`/reportes/ingresos?fechaInicio=${today}`).subscribe({
+      next: (res: ApiResponse<any[]>) => {
         if (res.exito && res.datos) {
-          this.ingresosDia = res.datos.totalIngresos;
+          // Mapeo manual: Backend devuelve List<Object[]> -> [ ["2023-11-20", 500.00] ]
+          // Asumimos que si filtramos por hoy, solo viene un registro o varios que debemos sumar
+          const total = res.datos.reduce((acc, item) => acc + (item[1] || 0), 0);
+          this.ingresosDia = total;
         }
       }
     });
