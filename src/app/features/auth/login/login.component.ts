@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ApiService } from '../../../core/services/api.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +18,7 @@ export class LoginComponent {
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService,
+    private authService: AuthService,
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -33,14 +33,10 @@ export class LoginComponent {
       this.errorMessage = null;
       const credentials = this.loginForm.value;
 
-      this.apiService.post<any>('/auth/login', credentials).subscribe({
+      this.authService.login(credentials).subscribe({
         next: (response: any) => {
           this.isLoading = false;
-          if (response.exito && response.datos) {
-            // Assuming the token is in response.datos.token or similar
-            // Adjust based on actual API response structure
-            const token = response.datos.token || response.datos;
-            localStorage.setItem('token', token);
+          if (response.exito) {
             this.router.navigate(['/dashboard']);
           } else {
             this.errorMessage = response.mensaje || 'Error de autenticación';

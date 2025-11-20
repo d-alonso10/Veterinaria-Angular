@@ -44,6 +44,14 @@ export const routes: Routes = [
       {
         path: 'pets/:id',
         loadComponent: () => import('./features/pets/mascota-form/mascota-form.component').then(m => m.MascotaFormComponent)
+      },
+      {
+        path: 'queue',
+        loadComponent: () => import('./features/atenciones/atencion-cola/atencion-cola.component').then(m => m.AtencionColaComponent)
+      },
+      {
+        path: 'reports/average-times',
+        loadComponent: () => import('./features/reports/reporte-tiempos/reporte-tiempos.component').then(m => m.ReporteTiemposComponent)
       }
     ]
   },

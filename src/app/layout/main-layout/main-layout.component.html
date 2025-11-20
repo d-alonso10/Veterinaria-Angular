@@ -8,8 +8,10 @@
     <div class="user-info">
       <div class="user-avatar">U</div>
       <div class="user-details">
-        <h3>Usuario Sistema</h3>
-        <p>Administrador</p>
+      <div class="user-details">
+        <h3>{{ user()?.username || 'Usuario' }}</h3>
+        <p>{{ user()?.rol || 'Invitado' }}</p>
+      </div>
       </div>
     </div>
 
@@ -42,9 +44,21 @@
         </a>
       </li>
       <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/queue">
+          <span class="menu-icon">📋</span>
+          <span>Cola de Atención</span>
+        </a>
+      </li>
+      <li class="menu-item" routerLinkActive="active">
         <a routerLink="/payments">
           <span class="menu-icon">💳</span>
           <span>Pagos</span>
+        </a>
+      </li>
+      <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/reports/average-times">
+          <span class="menu-icon">⏱️</span>
+          <span>Tiempos Promedio</span>
         </a>
       </li>
     </ul>

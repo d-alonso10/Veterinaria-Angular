@@ -1,0 +1,32 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex; align-items: center;">
+        <h2>📋 Cola de Atención</h2>
+        <div class="last-updated" style="font-size: 0.9em; color: var(--text-light);">
+            Actualizado: {{ lastUpdated | date:'mediumTime' }}
+        </div>
+    </div>
+
+    <div class="cola-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        @for (atencion of cola(); track atencion.idAtencion) {
+            <div class="card cola-card" style="border-left: 5px solid var(--primary-color);">
+                <div class="card-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span class="badge" style="background: #e3f2fd; color: var(--primary-color); padding: 4px 8px; border-radius: 4px;">
+                        Turno #{{ atencion.idAtencion }}
+                    </span>
+                    <span class="time">{{ atencion.fechaAtencion | date:'shortTime' }}</span>
+                </div>
+                <h3 style="margin: 0 0 5px 0;">{{ atencion.mascota.nombre }}</h3>
+                <p style="margin: 0; color: var(--text-light);">{{ atencion.mascota.raza }} - {{ atencion.mascota.especie }}</p>
+                <div class="divider" style="height: 1px; background: #eee; margin: 10px 0;"></div>
+                <p style="font-weight: 500;">{{ atencion.motivo }}</p>
+                <div class="status-badge" style="margin-top: 10px; display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; background: #fff3cd; color: #856404;">
+                    {{ atencion.estado }}
+                </div>
+            </div>
+        } @empty {
+            <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px;">
+                <p>No hay pacientes en espera en este momento.</p>
+            </div>
+        }
+    </div>
+</div>

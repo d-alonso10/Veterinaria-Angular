@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -11,4 +12,9 @@ import { DatePipe } from '@angular/common';
 })
 export class MainLayoutComponent {
   currentDate = new Date();
+  user;
+
+  constructor(public authService: AuthService) {
+    this.user = this.authService.currentUser;
+  }
 }

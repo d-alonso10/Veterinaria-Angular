@@ -32,3 +32,9 @@ export interface ILoginResponse {
   username: string;
   rol: string;
 }
+
+export interface ITiempoPromedio {
+  groomer: string;
+  tiempoPromedio: number; // in minutes
+  cantidadAtenciones: number;
+}
