@@ -45,6 +45,12 @@ export class AttentionService {
     );
   }
 
+  getById(id: number): Observable<IAtencion> {
+    return this.apiService.get<IAtencion>(`/atenciones/${id}`).pipe(
+      map(response => response.datos!)
+    );
+  }
+
   updateState(id: number, nuevoEstado: string): Observable<void> {
     return this.apiService.put<void>(`/atenciones/${id}/estado?nuevoEstado=${nuevoEstado}`, {}).pipe(
       map(() => undefined)

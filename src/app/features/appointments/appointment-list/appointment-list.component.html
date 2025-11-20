@@ -21,9 +21,9 @@
                 @for (cita of citas; track cita.idCita) {
                     <tr style="border-bottom: 1px solid #f0f0f0;">
                         <td style="padding: 12px;">{{ cita.fechaProgramada | date:'medium' }}</td>
-                        <td style="padding: 12px;">{{ cita.nombreCliente || 'N/A' }}</td>
-                        <td style="padding: 12px;">{{ cita.nombreMascota || 'N/A' }}</td>
-                        <td style="padding: 12px;">{{ cita.nombreServicio || 'N/A' }}</td>
+                        <td style="padding: 12px;">{{ cita.nombreCliente || 'Cliente #' + cita.idCliente }}</td>
+                        <td style="padding: 12px;">{{ cita.nombreMascota || 'Mascota #' + cita.idMascota }}</td>
+                        <td style="padding: 12px;">{{ cita.nombreServicio || 'Servicio #' + cita.idServicio }}</td>
                         <td style="padding: 12px;">{{ cita.modalidad }}</td>
                         <td style="padding: 12px;">
                             <span [ngClass]="{

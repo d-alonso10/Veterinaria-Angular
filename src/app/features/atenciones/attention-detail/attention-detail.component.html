@@ -1,7 +1,31 @@
 <div class="main-content">
-    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex;">
-        <h2>Detalle de Atención #{{ attentionId }}</h2>
-        <button (click)="finishAttention()" class="btn btn-success">Finalizar Atención</button>
+    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex; align-items: center;">
+        <div>
+            <h2>Detalle de Atención #{{ attentionId }}</h2>
+            @if (attention) {
+                <div style="margin-top: 5px;">
+                    <span class="badge" [ngClass]="{
+                        'badge-warning': attention.estado === 'en_espera',
+                        'badge-info': attention.estado === 'en_servicio',
+                        'badge-secondary': attention.estado === 'pausado',
+                        'badge-success': attention.estado === 'terminado'
+                    }" style="padding: 5px 10px; border-radius: 15px; font-size: 0.9em; background-color: #eee;">
+                        {{ attention.estado | uppercase }}
+                    </span>
+                </div>
+            }
+        </div>
+        <div style="display: flex; gap: 10px;">
+            @if (attention && attention.estado !== 'terminado') {
+                @if (attention.estado === 'en_espera' || attention.estado === 'pausado') {
+                    <button (click)="changeState('en_servicio')" class="btn btn-primary">▶ Iniciar Servicio</button>
+                }
+                @if (attention.estado === 'en_servicio') {
+                    <button (click)="changeState('pausado')" class="btn btn-secondary">⏸ Pausar</button>
+                }
+            }
+            <button (click)="finishAttention()" class="btn btn-success" [disabled]="attention?.estado === 'terminado'">Finalizar Atención</button>
+        </div>
     </div>
 
     <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 20px;">

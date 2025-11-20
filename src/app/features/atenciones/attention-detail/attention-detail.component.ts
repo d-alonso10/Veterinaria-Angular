@@ -34,9 +34,19 @@ export class AttentionDetailComponent implements OnInit {
       const id = params.get('id');
       if (id) {
         this.attentionId = Number(id);
+        this.loadAttention(this.attentionId);
         this.loadDetails(this.attentionId);
         this.loadServicios();
       }
+    });
+  }
+
+  attention: any = null; // Should be IAtencion
+
+  loadAttention(id: number) {
+    this.attentionService.getById(id).subscribe({
+      next: (data) => this.attention = data,
+      error: () => this.notificationService.error('Error al cargar la atención')
     });
   }
 
@@ -51,6 +61,18 @@ export class AttentionDetailComponent implements OnInit {
     this.serviceService.getServices().subscribe({
       next: (data) => this.servicios = data
     });
+  }
+
+  changeState(newState: string) {
+    if (this.attentionId) {
+      this.attentionService.updateState(this.attentionId, newState).subscribe({
+        next: () => {
+          this.notificationService.success(`Estado actualizado a ${newState}`);
+          this.loadAttention(this.attentionId!);
+        },
+        error: () => this.notificationService.error('Error al actualizar estado')
+      });
+    }
   }
 
   addService() {

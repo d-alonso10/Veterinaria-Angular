@@ -1,57 +1,115 @@
 ---
 ---
 
-### 📋 Detailed Report on Frontend Progress
+# 📋 Informe de Estado y Directivas de Desarrollo Frontend
 
-The frontend implementation is robust and follows good Angular practices (v17+ with Standalone Components).
+## 1\. ✅ Confirmación de Autenticación (Login)
 
-#### 1\. Architecture & Structure (⭐⭐⭐⭐⭐)
+Se han realizado pruebas de integración exitosas con el Backend. El servicio de Login **está funcionando correctamente**.
 
-- **Modular:** Correct separation between `core` (services, models, interceptors), `features` (business logic pages), and `layout`.
-- **Standalone Components:** Correct use of the latest Angular features, avoiding `NgModule` boilerplate.
-- **Services:** API logic is well abstracted in generic `ApiService` and specific services (`AuthService`, `ClientService`, etc.).
+**Importante:** Para desarrollo local, debes usar las credenciales tal cual están en la base de datos (el _hash_ simulado). No intentes usar "123" o "admin", usa la cadena literal.
 
-#### 2\. Authentication Flow (⭐⭐⭐⭐)
+**Credenciales de Prueba:**
 
-- **JWT Interceptor:** Correctly implemented in `jwt.interceptor.ts`. It will automatically attach the token to all requests.
-- **Login Logic:** Correctly handles the response and stores the user/token in `localStorage`.
-- **Pending to Verify:** Ensure `app.routes.ts` uses an `authGuard` to protect pages like `/dashboard`.
+- **Usuario:** `admin@vet.com`
+- **Password:** `hash_admin123`
 
-#### 3\. Implemented Modules
+**Prueba Exitosa (Postman Evidence):**
 
-- **Clients & Pets:** Full CRUD forms implemented. The reactive forms (`FormGroup`) in `mascota-form` look correct with validations.
-- **Appointments & Reception:** Logic for handling the queue and status updates seems aligned with the backend Enums (`en_espera`, `en_servicio`, etc.).
-- **Dashboard:** Connected to specific endpoints for metrics.
+- **Endpoint:** `POST http://localhost:8080/api/auth/login`
+- **Response (200 OK):**
+  ```json
+  {
+    "exito": true,
+    "mensaje": "Autenticación exitosa",
+    "datos": {
+      "idUsuario": 1,
+      "nombre": "Admin Principal",
+      "email": "admin@vet.com",
+      "rol": "admin",
+      "token": "eyJhbGciOiJIUzUxMiJ9...", // Token JWT válido
+      "tokenType": "Bearer"
+    },
+    "error": null
+  }
+  ```
 
-#### 4\. Missing or Points to Improve (Detailed for the Frontend Dev)
+> **Acción:** Asegúrate de que el `AuthService` capture este token y lo guarde en el LocalStorage para que el `JwtInterceptor` lo inyecte en las siguientes peticiones.
 
-To make life easier for the Frontend developer, pass them this **Checklist of Pending Items**:
+---
 
-1.  **Route Protection (`app.routes.ts`):**
+## 2\. 🚀 Prioridades de Desarrollo: Módulos Faltantes
 
-    - Ensure that all routes except `/login` are protected by the `AuthGuard`.
-    - _Example:_ `{ path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] }`
+Necesitamos finalizar la implementación de los flujos operativos principales.
 
-2.  **Enum Handling:**
+### A. Módulo de Citas (Appointments)
 
-    - The backend is **case-sensitive** with Enums (e.g., `"perro"` lowercase).
-    - _Warning in `mascota-form.component.html`:_ Currently, the select options have values like `<option value="Perro">Perro</option>` (Capitalized).
-    - **Fix:** Change values to lowercase to match backend: `<option value="perro">Perro</option>`. This applies to `especie`, `sexo`, `modalidad`, etc.
+El esqueleto existe, pero falta la integración completa del ciclo de vida.
 
-3.  **Date Handling:**
+1.  **Listado:** Consumir `GET /api/citas`.
+    - _Ojo:_ El backend devuelve IDs (`idMascota`, `idCliente`). Por ahora, muestra los IDs o implementa una carga auxiliar de nombres, ya que el DTO no incluye los nombres expandidos.
+2.  **Creación:** Consumir `POST /api/citas`.
+    - Formato fecha: `YYYY-MM-DDTHH:mm:ss` (ISO-8601).
+3.  **Acciones en tabla:** Agregar botones para cambiar estados:
+    - Confirmar: `PUT /api/citas/{id}/confirmar-asistencia`.
+    - Cancelar: `PUT /api/citas/{id}/cancelar`.
+    - Reprogramar: `PUT /api/citas/{id}/reprogramar` (Requiere enviar `nuevaFecha` como query param).
 
-    - The backend expects `LocalDateTime` (e.g., `"2025-11-20T10:00:00"`) for appointments.
-    - HTML `<input type="datetime-local">` works well, but ensure the format sent is ISO string.
+### B. Módulo de Cola de Atención (Queue / Kanban)
 
-4.  **Error Feedback:**
+Este es el módulo crítico para la operación diaria (Groomers/Veterinarios).
 
-    - The `ApiService` generic error handler logs to console. It would be better to connect this to a "Toast" or "Snackbar" service (like `MatSnackBar` or a custom one) to show errors like "Usuario no encontrado" to the user visibly.
+1.  **Vista de Cola:** Consumir `GET /api/atenciones/cola/{idSucursal}`.
+    - Usa `idSucursal = 1` (o el que tenga el usuario logueado) para pruebas.
+    - Debe refrescarse automáticamente cada 30-60 segundos.
+2.  **Recepción (Check-in):**
+    - Terminar la pantalla donde se busca una Cita y se convierte en Atención usando `POST /api/atenciones/desde-cita`.
+    - Implementar la opción "Walk-In" (sin cita) usando `POST /api/atenciones/walk-in`.
+3.  **Gestión de Estado:**
+    - Permitir mover tarjetas/items de estado (ej. de "en_espera" a "en_servicio") usando `PUT /api/atenciones/{id}/estado`.
 
-5.  **Role Management:**
+---
 
-    - The login response returns a `rol`. The UI sidebar shows it, but ensure buttons are hidden if the user doesn't have permission (e.g., only `admin` should see "Reportes" or "Usuarios").
+## 3\. 🔍 Revisión Técnica y Ajustes Necesarios (Code Review)
 
-### Summary
+He revisado el repositorio `veterinaria-angular` y encontré estos puntos que deben ajustarse para evitar errores con el Backend actual:
 
-The frontend is 90% ready for a demo. The main blocker is the **DB Password Mismatch**.
-**Tell the frontend dev:** "Log in with user `admin@vet.com` and password `hash_admin123`. The system will auto-update your password to a hash, and next time you can use `hash_admin123` securely, or change it via the 'Change Password' endpoint."
+### 1\. Manejo de Enums (Case Sensitivity)
+
+El backend espera los valores de los Enums en **minúsculas**.
+
+- **Archivo:** `src/app/features/pets/mascota-form/mascota-form.component.html`
+- **Error:** Los `<option>` tienen valores capitalizados (ej: `value="Perro"`).
+- **Corrección:** Cambiar a minúsculas para coincidir con la BD:
+  ```html
+  <option value="perro">Perro</option>
+  <option value="gato">Gato</option>
+  <option value="macho">Macho</option>
+  ```
+
+### 2\. Interfaz de Modelos (`models.ts`)
+
+- **Archivo:** `src/app/core/models/models.ts`
+- **Atención:** La interfaz `ICita` tiene campos opcionales como `nombreMascota` o `nombreCliente`.
+- **Observación:** El endpoint `/api/citas` devuelve un `CitaDTO` que **solo contiene IDs** (`idMascota`, `idCliente`).
+- **Solución:** En la lista de citas (`appointment-list`), no esperes ver los nombres automáticamente. O bien haces una petición extra para obtener el nombre del cliente por ID, o muestras el ID temporalmente hasta que actualicemos el Backend con un DTO proyectado.
+
+### 3\. AuthService y Session
+
+- **Archivo:** `src/app/core/services/auth.service.ts`
+- **Estado:** El método `setSession` está guardando correctamente el `username` (como email) y el `rol`.
+- **Mejora:** Asegúrate de que el _Sidebar_ o _Header_ use estos datos para ocultar opciones que el usuario no tiene permiso de ver (ej. Si es `groomer`, ocultar "Reportes" y "Usuarios").
+
+### 4\. Manejo de Fechas
+
+El backend usa Java 8 `LocalDateTime`.
+
+- Asegúrate de que los formularios de Angular envíen el string completo (ej. `2025-11-20T15:30:00`). Si usas `<input type="datetime-local">`, asegúrate de que el valor se formatee correctamente antes de enviarlo al `ApiService`.
+
+---
+
+**Resumen para el Desarrollador:**
+
+1.  Usa las credenciales `admin@vet.com` / `hash_admin123`.
+2.  Corrige los `value` de los selects en los formularios a minúsculas.
+3.  Prioriza terminar la integración de la **Cola de Atención** y el cambio de estados, ya que es el núcleo del flujo de trabajo.

@@ -29,8 +29,8 @@
                         @for (cita of citas; track cita.idCita) {
                             <tr style="border-bottom: 1px solid #f0f0f0;">
                                 <td style="padding: 12px;">{{ cita.fechaProgramada | date:'short' }}</td>
-                                <td style="padding: 12px;">{{ cita.nombreMascota }}</td>
-                                <td style="padding: 12px;">{{ cita.nombreServicio }}</td>
+                                <td style="padding: 12px;">{{ cita.nombreMascota || 'Mascota #' + cita.idMascota }}</td>
+                                <td style="padding: 12px;">{{ cita.nombreServicio || 'Servicio #' + cita.idServicio }}</td>
                                 <td style="padding: 12px;">
                                     <button (click)="checkIn(cita)" class="btn btn-success btn-small">Check-in</button>
                                 </td>
