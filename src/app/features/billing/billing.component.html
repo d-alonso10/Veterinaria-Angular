@@ -1,0 +1,44 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px;">
+        <h2>Generar Factura</h2>
+    </div>
+
+    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;">
+        @if (attention) {
+            <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+                <h4>Detalles de Atención #{{ attention.idAtencion }}</h4>
+                <p><strong>Mascota:</strong> {{ attention.mascota.nombre }}</p>
+                <p><strong>Total a Pagar:</strong> S/ {{ attention.costoTotal }}</p>
+            </div>
+        }
+
+        <form [formGroup]="billingForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label>Serie</label>
+                <input type="text" formControlName="serie" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Número</label>
+                <input type="text" formControlName="numero" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Método de Pago Sugerido</label>
+                <select formControlName="metodoPagoSugerido" class="form-control">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transfer">Transferencia</option>
+                    <option value="yape">Yape/Plin</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" (click)="billingForm.reset()">Limpiar</button>
+                <button type="submit" class="btn btn-primary" [disabled]="billingForm.invalid || isLoading">
+                    {{ isLoading ? 'Generando...' : 'Generar Factura' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -57,4 +57,18 @@ export class AppointmentListComponent implements OnInit {
       });
     }
   }
+
+  rescheduleCita(id: number) {
+    const nuevaFecha = prompt('Ingrese la nueva fecha y hora (YYYY-MM-DDTHH:mm:ss):');
+    if (nuevaFecha) {
+      // Basic validation could go here
+      this.appointmentService.reschedule(id, nuevaFecha).subscribe({
+        next: () => {
+          this.notificationService.success('Cita reprogramada');
+          this.loadCitas();
+        },
+        error: () => this.notificationService.error('Error al reprogramar cita')
+      });
+    }
+  }
 }

@@ -14,7 +14,9 @@ export interface IMascota {
 export interface IAtencion {
   idAtencion?: number;
   mascota: IMascota;
-  fechaAtencion: string; // ISO LocalDateTime
+  fechaAtencion?: string; // Keep for compatibility if needed
+  createdAt?: string; // Backend field
+  tiempoEstimadoInicio?: string; // Backend field
   motivo: string;
   diagnostico?: string;
   tratamiento?: string;

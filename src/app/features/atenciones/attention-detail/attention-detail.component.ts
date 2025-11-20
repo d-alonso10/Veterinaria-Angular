@@ -104,7 +104,7 @@ export class AttentionDetailComponent implements OnInit {
       this.attentionService.finishAttention(this.attentionId).subscribe({
         next: () => {
           this.notificationService.success('Atención finalizada');
-          this.router.navigate(['/queue']);
+          this.router.navigate(['/billing/new', this.attentionId]);
         },
         error: () => this.notificationService.error('Error al finalizar atención')
       });

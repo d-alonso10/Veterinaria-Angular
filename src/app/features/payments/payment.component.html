@@ -1,0 +1,40 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px;">
+        <h2>Registrar Pago</h2>
+    </div>
+
+    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;">
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #e8f5e9; border-radius: 8px; color: #2e7d32;">
+            <p><strong>Factura #{{ invoiceId }}</strong></p>
+            <p>Ingrese el monto a pagar para cancelar la deuda.</p>
+        </div>
+
+        <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label>Monto</label>
+                <input type="number" formControlName="monto" class="form-control" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label>Método de Pago</label>
+                <select formControlName="metodo" class="form-control">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transfer">Transferencia</option>
+                    <option value="yape">Yape/Plin</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Referencia (Opcional)</label>
+                <input type="text" formControlName="referencia" class="form-control" placeholder="Nro Operación / Voucher">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" [disabled]="paymentForm.invalid || isLoading">
+                    {{ isLoading ? 'Procesando...' : 'Registrar Pago' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

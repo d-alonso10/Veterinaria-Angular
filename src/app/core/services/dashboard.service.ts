@@ -33,4 +33,10 @@ export class DashboardService {
           map(response => response.datos || [])
       );
   }
+
+  getTopClientes(limit: number = 5): Observable<any[]> {
+      return this.apiService.get<any[]>(`/reportes/clientes-frecuentes`, { limit }).pipe(
+          map(response => response.datos || [])
+      );
+  }
 }

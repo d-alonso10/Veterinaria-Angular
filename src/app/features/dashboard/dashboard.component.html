@@ -60,4 +60,29 @@
             <a routerLink="/payments/new" class="btn btn-warning btn-small">Pagar</a>
         </div>
     </div>
+
+    <!-- Top Clientes -->
+    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-top: 20px;">
+        <h3>Clientes Frecuentes</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="text-align: left; border-bottom: 1px solid #eee;">
+                    <th style="padding: 8px;">Cliente</th>
+                    <th style="padding: 8px;">Visitas</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (cliente of topClientes; track $index) {
+                    <tr style="border-bottom: 1px solid #f9f9f9;">
+                        <td style="padding: 8px;">{{ cliente.nombre }} {{ cliente.apellido }}</td>
+                        <td style="padding: 8px;">{{ cliente.cantidad_visitas || cliente.visitas }}</td>
+                    </tr>
+                } @empty {
+                    <tr>
+                        <td colspan="2" style="padding: 10px; text-align: center; color: #888;">No hay datos disponibles</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

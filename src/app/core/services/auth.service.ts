@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   login(credentials: any) {
-    return this.apiService.post<ILoginResponse>('/auth/login', credentials).pipe(
+    return this.apiService.post<ILoginResponse>('/api/auth/login', credentials).pipe(
       tap(response => {
         if (response.exito && response.datos) {
           this.setSession(response.datos);

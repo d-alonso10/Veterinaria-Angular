@@ -32,6 +32,8 @@ export class DashboardComponent implements OnInit {
     private notificationService: NotificationService
   ) {}
 
+  topClientes: any[] = [];
+
   ngOnInit() {
     this.loadStats();
   }
@@ -44,7 +46,8 @@ export class DashboardComponent implements OnInit {
       metricas: this.dashboardService.getMetricas(today, today),
       cola: this.apiService.get<any[]>(`/atenciones/cola/${this.ID_SUCURSAL}`), // TODO: Move to AttentionService
       ingresos: this.dashboardService.getIngresos(today, today, this.ID_SUCURSAL),
-      clientes: this.clientService.getClients()
+      clientes: this.clientService.getClients(),
+      topClientes: this.dashboardService.getTopClientes()
     }).subscribe({
       next: (results) => {
         this.isLoading = false;
@@ -56,12 +59,6 @@ export class DashboardComponent implements OnInit {
         }
 
         // --- B. Procesar Atenciones en Curso ---
-        // ApiService returns ApiResponse, others return unwrapped data (except cola which I called via apiService directly)
-        // Wait, forkJoin results will be mixed.
-        // dashboardService returns T[] (unwrapped).
-        // clientService returns Cliente[] (unwrapped).
-        // apiService returns ApiResponse<T> (wrapped).
-
         const colaResponse = results.cola as any; // ApiResponse
         if (colaResponse.exito && colaResponse.datos) {
           this.atencionesEnCurso = colaResponse.datos.length;
@@ -78,6 +75,11 @@ export class DashboardComponent implements OnInit {
         // --- D. Procesar Total de Clientes ---
         if (results.clientes) {
           this.totalClientes = results.clientes.length;
+        }
+
+        // --- E. Top Clientes ---
+        if (results.topClientes) {
+          this.topClientes = results.topClientes;
         }
       },
       error: (err) => {

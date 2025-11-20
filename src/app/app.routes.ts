@@ -71,6 +71,14 @@ export const routes: Routes = [
       {
         path: 'reports/average-times',
         loadComponent: () => import('./features/reports/reporte-tiempos/reporte-tiempos.component').then(m => m.ReporteTiemposComponent)
+      },
+      {
+        path: 'billing/new/:attentionId',
+        loadComponent: () => import('./features/billing/billing.component').then(m => m.BillingComponent)
+      },
+      {
+        path: 'payments/new/:invoiceId',
+        loadComponent: () => import('./features/payments/payment.component').then(m => m.PaymentComponent)
       }
     ]
   },
