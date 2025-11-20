@@ -1,221 +1,57 @@
 ---
 ---
 
-# 📘 Guía de Integración Backend - TeranVet API
+### 📋 Detailed Report on Frontend Progress
 
-## 1\. Configuración General
+The frontend implementation is robust and follows good Angular practices (v17+ with Standalone Components).
 
-### Base URL
+#### 1\. Architecture & Structure (⭐⭐⭐⭐⭐)
 
-```text
-http://localhost:8080
-```
+- **Modular:** Correct separation between `core` (services, models, interceptors), `features` (business logic pages), and `layout`.
+- **Standalone Components:** Correct use of the latest Angular features, avoiding `NgModule` boilerplate.
+- **Services:** API logic is well abstracted in generic `ApiService` and specific services (`AuthService`, `ClientService`, etc.).
 
-### Autenticación (JWT)
+#### 2\. Authentication Flow (⭐⭐⭐⭐)
 
-El sistema utiliza **Bearer Token**.
+- **JWT Interceptor:** Correctly implemented in `jwt.interceptor.ts`. It will automatically attach the token to all requests.
+- **Login Logic:** Correctly handles the response and stores the user/token in `localStorage`.
+- **Pending to Verify:** Ensure `app.routes.ts` uses an `authGuard` to protect pages like `/dashboard`.
 
-1.  El Frontend debe hacer login en `/api/auth/login`.
-2.  Al recibir la respuesta, guardar el `token` (localStorage/cookie).
-3.  **Todas** las peticiones subsiguientes deben incluir el header:
-    ```http
-    Authorization: Bearer <tu_token_jwt>
-    Content-Type: application/json
-    ```
+#### 3\. Implemented Modules
 
-### Manejo de CORS
+- **Clients & Pets:** Full CRUD forms implemented. The reactive forms (`FormGroup`) in `mascota-form` look correct with validations.
+- **Appointments & Reception:** Logic for handling the queue and status updates seems aligned with the backend Enums (`en_espera`, `en_servicio`, etc.).
+- **Dashboard:** Connected to specific endpoints for metrics.
 
-El backend está configurado para aceptar peticiones de cualquier origen (`*`), métodos (`GET, POST, PUT, DELETE, OPTIONS`) y credenciales. No deberían tener problemas de bloqueo de CORS en desarrollo.
+#### 4\. Missing or Points to Improve (Detailed for the Frontend Dev)
 
-### Formato de Fechas
+To make life easier for the Frontend developer, pass them this **Checklist of Pending Items**:
 
-El backend utiliza Java 8 `LocalDateTime` y `LocalDate`.
+1.  **Route Protection (`app.routes.ts`):**
 
-- **Formato esperado:** ISO-8601 standard.
-- **Ejemplo:** `"2025-11-20T14:30:00"` (Fecha y hora) o `"2025-11-20"` (Solo fecha).
+    - Ensure that all routes except `/login` are protected by the `AuthGuard`.
+    - _Example:_ `{ path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] }`
 
----
+2.  **Enum Handling:**
 
-## 2\. Estructura de Respuesta Estándar (`ApiResponse`)
+    - The backend is **case-sensitive** with Enums (e.g., `"perro"` lowercase).
+    - _Warning in `mascota-form.component.html`:_ Currently, the select options have values like `<option value="Perro">Perro</option>` (Capitalized).
+    - **Fix:** Change values to lowercase to match backend: `<option value="perro">Perro</option>`. This applies to `especie`, `sexo`, `modalidad`, etc.
 
-Todas las respuestas (éxito o error) tienen la misma estructura JSON. El frontend debe crear un interceptor o wrapper para manejar esto uniformemente.
+3.  **Date Handling:**
 
-```json
-{
-  "exito": true,              // Booleano: true si todo salió bien
-  "mensaje": "Texto descriptivo", // Mensaje para mostrar al usuario (Toast/Alerta)
-  "datos": { ... },           // El objeto o lista solicitada (puede ser null en errores)
-  "error": null               // Detalle técnico del error si exito es false
-}
-```
+    - The backend expects `LocalDateTime` (e.g., `"2025-11-20T10:00:00"`) for appointments.
+    - HTML `<input type="datetime-local">` works well, but ensure the format sent is ISO string.
 
-**Manejo de Errores HTTP:**
+4.  **Error Feedback:**
 
-- `200 OK`: Éxito.
-- `201 Created`: Registro creado.
-- `400 Bad Request`: Validación fallida (ej. faltan campos).
-- `401 Unauthorized`: Token inválido o expirado.
-- `404 Not Found`: ID no encontrado.
-- `500 Internal Server Error`: Error de lógica o base de datos.
+    - The `ApiService` generic error handler logs to console. It would be better to connect this to a "Toast" or "Snackbar" service (like `MatSnackBar` or a custom one) to show errors like "Usuario no encontrado" to the user visibly.
 
----
+5.  **Role Management:**
 
-## 3\. Diccionario de Enums (Para Dropdowns/Selects)
+    - The login response returns a `rol`. The UI sidebar shows it, but ensure buttons are hidden if the user doesn't have permission (e.g., only `admin` should see "Reportes" or "Usuarios").
 
-Estos son los valores exactos (Case Sensitive) que el backend espera y devuelve. Úsalos para poblar tus `<select>`.
+### Summary
 
-| Entidad      | Campo       | Valores Permitidos (Strings)                                             |
-| :----------- | :---------- | :----------------------------------------------------------------------- |
-| **Mascota**  | `especie`   | `"perro"`, `"gato"`, `"otro"`                                            |
-| **Mascota**  | `sexo`      | `"macho"`, `"hembra"`, `"otro"`                                          |
-| **Cita**     | `modalidad` | `"presencial"`, `"virtual"`                                              |
-| **Cita**     | `estado`    | `"reservada"`, `"confirmada"`, `"asistio"`, `"cancelada"`, `"no_show"`   |
-| **Atención** | `estado`    | `"en_espera"`, `"en_servicio"`, `"pausado"`, `"terminado"`               |
-| **Servicio** | `categoria` | `"baño"`, `"corte"`, `"dental"`, `"paquete"`, `"otro"`                   |
-| **Factura**  | `estado`    | `"pendiente"`, `"confirmado"`, `"anulado"`                               |
-| **Pago**     | `metodo`    | `"efectivo"`, `"tarjeta"`, `"transfer"`, `"otro"`                        |
-| **Usuario**  | `rol`       | `"recepcionista"`, `"admin"`, `"groomer"`, `"contador"`, `"veterinario"` |
-
----
-
-## 4\. Endpoints Principales y Payloads
-
-### 🔐 Autenticación (`/auth`)
-
-- **Login:** `POST /auth/login`
-  - Body: `{ "email": "admin@vet.com", "password": "123" }`
-  - _Nota:_ Retorna el token y los datos del usuario.
-- **Cambiar Password:** `POST /auth/cambiar-contraseña?idUsuario=1`
-  - Body: `{ "nuevaContraseña": "newPass" }`
-
-### 👥 Clientes (`/clientes`)
-
-- **Listar:** `GET /clientes`
-- **Buscar:** `GET /clientes/buscar/{termino}` (Busca por nombre, apellido o DNI).
-- **Crear:** `POST /clientes`
-  ```json
-  {
-    "nombre": "Juan",
-    "apellido": "Perez",
-    "dniRuc": "12345678",
-    "email": "juan@mail.com",
-    "telefono": "999888777",
-    "direccion": "Av. Lima 123",
-    "preferencias": "{}" // JSON string opcional
-  }
-  ```
-
-### 🐾 Mascotas (`/mascotas`)
-
-- **Por Cliente:** `GET /mascotas/cliente/{idCliente}` (Vital para la ficha del cliente).
-- **Crear:** `POST /mascotas`
-  - Requiere `idCliente` (Integer).
-  - Fechas formato: `"YYYY-MM-DD"`.
-
-### 📅 Citas (`/citas`)
-
-- **Dashboard Citas:** `GET /citas`
-- **Próximas por cliente:** `GET /citas/cliente/{idCliente}/proximas`
-- **Crear:** `POST /citas`
-  ```json
-  {
-    "idMascota": 1,
-    "idCliente": 1,
-    "idSucursal": 1,
-    "idServicio": 1,
-    "fechaProgramada": "2025-11-20T10:30:00",
-    "modalidad": "presencial",
-    "notas": "Nota opcional"
-  }
-  ```
-- **Acciones Rápidas (Botones):**
-  - `PUT /citas/{id}/confirmar-asistencia`
-  - `PUT /citas/{id}/cancelar`
-  - `PUT /citas/{id}/reprogramar?nuevaFecha=2025-12-01T10:00:00`
-
-### ⚡ Atenciones (Flujo Operativo) (`/atenciones`)
-
-Este es el corazón operativo. Hay dos formas de iniciar una atención:
-
-1.  **Desde Cita (Check-in):**
-
-    - `POST /atenciones/desde-cita`
-    - **Importante:** Usa `Params` (Query Parameters), no JSON body.
-    - Params: `idCita`, `idGroomer`, `idSucursal`, `turnoNum`, `tiempoEstimadoInicio`, `tiempoEstimadoFin`, `prioridad`.
-
-2.  **Walk-In (Sin Cita):**
-
-    - `POST /atenciones/walk-in`
-    - **Importante:** Usa `Params`.
-    - Params: `idMascota`, `idCliente`, `idGroomer`, ... (mismos de arriba) + `observaciones`.
-
-3.  **Kanban / Tablero:**
-
-    - `GET /atenciones/cola/{idSucursal}`: Retorna atenciones en estado `en_espera` o `en_servicio`.
-    - `PUT /atenciones/{id}/estado?nuevoEstado=en_servicio`: Mover tarjeta.
-    - `PUT /atenciones/{id}/terminar`: Finalizar atención (Dispara posibilidad de facturar).
-
-4.  **Detalles de Atención (Servicios realizados):**
-
-    - Ruta: `/atenciones/{idAtencion}/detalles`
-    - `GET`: Ver servicios de la atención.
-    - `POST`: Agregar servicio extra a la atención en curso.
-    - `GET /subtotal`: Calcula el dinero acumulado de la atención.
-
-### 🛠️ Servicios y Paquetes
-
-- **Catálogo:** `GET /servicios`
-- **Por Categoría:** `GET /servicios/categoria/baño` (Útil para filtrar en el UI).
-- **Paquetes:** `GET /servicios/paquetes` (Combos predefinidos).
-
-### 💳 Facturación y Pagos
-
-1.  **Crear Factura:** `POST /facturas`
-    - Params: `idAtencion`, `serie` (ej: F001), `numero`, `metodoPagoSugerido`.
-2.  **Registrar Pago:** `POST /pagos`
-    - Params: `idFactura`, `monto`, `metodo` (ej: tarjeta), `referencia` (opcional).
-    - Nota: Si el monto cubre el total, la factura pasa a estado `pagada` automáticamente.
-
-### 📊 Dashboard y Reportes (`/dashboard`, `/reportes`)
-
-Estos endpoints devuelven listas de mapas (`List<Map>`), ideales para librerías de gráficos como Chart.js o Recharts.
-
-- `GET /dashboard/metricas`: Datos para las tarjetas superiores (Total clientes, Ingresos hoy, etc.).
-- `GET /dashboard/estadisticas-mensuales?anio=2025&mes=11`: Para gráficos de barras.
-- `GET /groomers/ocupacion/{fecha}`: Para ver carga de trabajo del personal.
-
-### 🔔 Notificaciones (`/notificaciones`)
-
-- `GET /notificaciones/cliente/{id}/no-leidas`: Para mostrar la "campanita" o alertas en el perfil del cliente.
-
----
-
-## 5\. Flujos de Trabajo Comunes (Workflow)
-
-### Flujo A: Recepción de Cliente con Cita
-
-1.  Buscar Cita: `GET /citas/cliente/{id}/proximas`.
-2.  Confirmar llegada: `PUT /citas/{id}/confirmar-asistencia`.
-3.  Crear Atención (Pase a Grooming): `POST /atenciones/desde-cita`.
-
-### Flujo B: Grooming (Tablet del Groomer)
-
-1.  Ver Cola: `GET /atenciones/cola/{sucursal}`.
-2.  Iniciar trabajo: `PUT /atenciones/{id}/estado` (enviar `en_servicio`).
-3.  Agregar servicio adicional (si aplica): `POST /atenciones/{id}/detalles`.
-4.  Terminar: `PUT /atenciones/{id}/terminar`.
-
-### Flujo C: Caja (Cobro)
-
-1.  Buscar Atención Terminada: `GET /atenciones/{id}` o listar terminadas.
-2.  Generar Factura: `POST /facturas`.
-3.  Cobrar: `POST /pagos`.
-
----
-
-## 6\. Notas para el Desarrollador Frontend
-
-1.  **Validaciones:** Aunque el backend valida, implementa validaciones en los formularios (campos requeridos, formatos de fecha) para mejor UX.
-2.  **Groomers:** Al asignar una cita o atención, usa `GET /groomers/disponibilidad/{fecha}` para no asignar a alguien ocupado.
-3.  **Manejo de Arrays:** Los campos `preferencias` (Cliente) y `especialidades` (Groomer) se envían como Strings JSON en la BD, pero el DTO los maneja como Strings. Asegúrate de hacer `JSON.parse()` al recibir y `JSON.stringify()` al enviar si necesitas manipular su estructura interna.
-4.  **Tests:** Puedes usar la colección de Postman proporcionada (`Postman_Collection.json`) para probar los endpoints antes de codificar.
+The frontend is 90% ready for a demo. The main blocker is the **DB Password Mismatch**.
+**Tell the frontend dev:** "Log in with user `admin@vet.com` and password `hash_admin123`. The system will auto-update your password to a hash, and next time you can use `hash_admin123` securely, or change it via the 'Change Password' endpoint."

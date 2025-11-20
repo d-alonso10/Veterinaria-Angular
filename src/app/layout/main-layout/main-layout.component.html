@@ -49,18 +49,22 @@
           <span>Cola de Atención</span>
         </a>
       </li>
-      <li class="menu-item" routerLinkActive="active">
-        <a routerLink="/payments">
-          <span class="menu-icon">💳</span>
-          <span>Pagos</span>
-        </a>
-      </li>
-      <li class="menu-item" routerLinkActive="active">
-        <a routerLink="/reports/average-times">
-          <span class="menu-icon">⏱️</span>
-          <span>Tiempos Promedio</span>
-        </a>
-      </li>
+      @if (user()?.rol === 'admin' || user()?.rol === 'recepcionista' || user()?.rol === 'contador') {
+        <li class="menu-item" routerLinkActive="active">
+          <a routerLink="/payments">
+            <span class="menu-icon">💳</span>
+            <span>Pagos</span>
+          </a>
+        </li>
+      }
+      @if (user()?.rol === 'admin') {
+        <li class="menu-item" routerLinkActive="active">
+          <a routerLink="/reports/average-times">
+            <span class="menu-icon">⏱️</span>
+            <span>Tiempos Promedio</span>
+          </a>
+        </li>
+      }
     </ul>
   </div>
 

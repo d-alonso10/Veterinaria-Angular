@@ -32,10 +32,10 @@
                     <label for="especie">Especie</label>
                     <select id="especie" formControlName="especie" class="form-control">
                         <option value="">Seleccione especie</option>
-                        <option value="Perro">Perro</option>
-                        <option value="Gato">Gato</option>
-                        <option value="Ave">Ave</option>
-                        <option value="Otro">Otro</option>
+                        <option value="perro">Perro</option>
+                        <option value="gato">Gato</option>
+                        <option value="ave">Ave</option>
+                        <option value="otro">Otro</option>
                     </select>
                     @if (mascotaForm.get('especie')?.invalid && (mascotaForm.get('especie')?.dirty || mascotaForm.get('especie')?.touched)) {
                         <div class="error-message">La especie es requerida</div>

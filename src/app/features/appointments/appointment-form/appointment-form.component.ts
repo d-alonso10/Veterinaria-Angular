@@ -86,12 +86,17 @@ export class AppointmentFormComponent implements OnInit {
       const formValue = this.appointmentForm.value;
 
       // Ensure idSucursal is set (hardcoded to 1 for now as per instructions/dashboard)
+      let fecha = formValue.fechaProgramada;
+      if (fecha && fecha.length === 16) {
+          fecha = fecha + ':00';
+      }
+
       const cita: ICita = {
         idCliente: Number(formValue.idCliente),
         idMascota: Number(formValue.idMascota),
         idServicio: Number(formValue.idServicio),
         idSucursal: 1,
-        fechaProgramada: formValue.fechaProgramada, // Ensure format matches backend expectation (ISO string usually works)
+        fechaProgramada: fecha,
         modalidad: formValue.modalidad,
         notas: formValue.notas
       };
