@@ -21,6 +21,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         if (error.error && error.error.mensaje) {
             errorMessage = error.error.mensaje;
         } else if (error.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             errorMessage = 'Sesión expirada. Por favor inicie sesión nuevamente.';
             router.navigate(['/login']);
         } else if (error.status === 403) {
