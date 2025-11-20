@@ -1,0 +1,78 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px;">
+        <h2>Recepción / Check-in</h2>
+    </div>
+
+    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+        <div class="tabs" style="margin-bottom: 20px; border-bottom: 1px solid #ddd;">
+            <button (click)="setActiveTab('citas')" [class.active]="activeTab === 'citas'" class="tab-btn">Con Cita</button>
+            <button (click)="setActiveTab('walkin')" [class.active]="activeTab === 'walkin'" class="tab-btn">Sin Cita (Walk-In)</button>
+        </div>
+
+        @if (activeTab === 'citas') {
+            <div class="tab-content">
+                <form [formGroup]="searchForm" (ngSubmit)="searchCitas()" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" formControlName="dni" class="form-control" placeholder="Buscar por DNI del cliente">
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+                </form>
+
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
+                            <th style="padding: 12px;">Fecha</th>
+                            <th style="padding: 12px;">Mascota</th>
+                            <th style="padding: 12px;">Servicio</th>
+                            <th style="padding: 12px;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (cita of citas; track cita.idCita) {
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px;">{{ cita.fechaProgramada | date:'short' }}</td>
+                                <td style="padding: 12px;">{{ cita.nombreMascota }}</td>
+                                <td style="padding: 12px;">{{ cita.nombreServicio }}</td>
+                                <td style="padding: 12px;">
+                                    <button (click)="checkIn(cita)" class="btn btn-success btn-small">Check-in</button>
+                                </td>
+                            </tr>
+                        } @empty {
+                            <tr>
+                                <td colspan="4" style="padding: 20px; text-align: center; color: var(--text-light);">No se encontraron citas próximas.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (activeTab === 'walkin') {
+            <div class="tab-content">
+                <form [formGroup]="walkInForm" (ngSubmit)="startWalkIn()">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <select formControlName="idCliente" class="form-control">
+                            <option value="">Seleccione Cliente</option>
+                            @for (cliente of clientes; track cliente.idCliente) {
+                                <option [value]="cliente.idCliente">{{ cliente.nombre }} {{ cliente.apellido }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mascota</label>
+                        <select formControlName="idMascota" class="form-control">
+                            <option value="">Seleccione Mascota</option>
+                            @for (mascota of mascotas; track mascota.idMascota) {
+                                <option [value]="mascota.idMascota">{{ mascota.nombre }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Observaciones</label>
+                        <textarea formControlName="observaciones" class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" [disabled]="walkInForm.invalid || isLoading">Iniciar Atención</button>
+                </form>
+            </div>
+        }
+    </div>
+</div>

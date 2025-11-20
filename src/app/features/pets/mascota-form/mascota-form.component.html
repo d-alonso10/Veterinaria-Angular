@@ -49,6 +49,19 @@
                         <div class="error-message">La raza es requerida</div>
                     }
                 </div>
+
+                <div class="form-group">
+                    <label for="sexo">Sexo</label>
+                    <select id="sexo" formControlName="sexo" class="form-control">
+                        <option value="">Seleccione sexo</option>
+                        <option value="macho">Macho</option>
+                        <option value="hembra">Hembra</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                    @if (mascotaForm.get('sexo')?.invalid && (mascotaForm.get('sexo')?.dirty || mascotaForm.get('sexo')?.touched)) {
+                        <div class="error-message">El sexo es requerido</div>
+                    }
+                </div>
             </div>
 
             <div class="form-group">

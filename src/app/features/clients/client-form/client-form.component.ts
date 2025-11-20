@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiService } from '../../../core/services/api.service';
+import { ClientService } from '../../../core/services/client.service';
 import { Cliente } from '../../../core/models/client.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-client-form',
@@ -20,9 +21,10 @@ export class ClientFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService,
+    private clientService: ClientService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private notificationService: NotificationService
   ) {
     this.clientForm = this.fb.group({
       nombre: ['', Validators.required],
@@ -45,13 +47,14 @@ export class ClientFormComponent implements OnInit {
   }
 
   loadClient(id: number) {
-    this.apiService.get<Cliente>(`/clientes/${id}`).subscribe({
-      next: (response: any) => {
-        if (response.exito && response.datos) {
-          this.clientForm.patchValue(response.datos);
-        }
+    this.clientService.getClientById(id).subscribe({
+      next: (client) => {
+        this.clientForm.patchValue(client);
       },
-      error: (err: any) => console.error('Error loading client', err)
+      error: (err) => {
+        console.error('Error loading client', err);
+        this.notificationService.error('Error al cargar cliente');
+      }
     });
   }
 
@@ -61,29 +64,29 @@ export class ClientFormComponent implements OnInit {
       const clientData: Cliente = this.clientForm.value;
 
       if (this.isEditing && this.clientId) {
-        this.apiService.put<Cliente>(`/clientes/${this.clientId}`, clientData).subscribe({
-          next: (response: any) => {
+        this.clientService.updateClient(this.clientId, clientData).subscribe({
+          next: () => {
             this.isLoading = false;
-            if (response.exito) {
-              this.router.navigate(['/clients']);
-            }
+            this.notificationService.success('Cliente actualizado correctamente');
+            this.router.navigate(['/clients']);
           },
-          error: (err: any) => {
+          error: (err) => {
             this.isLoading = false;
             console.error('Error updating client', err);
+            this.notificationService.error('Error al actualizar cliente');
           }
         });
       } else {
-        this.apiService.post<Cliente>('/clientes', clientData).subscribe({
-          next: (response: any) => {
+        this.clientService.createClient(clientData).subscribe({
+          next: () => {
             this.isLoading = false;
-            if (response.exito) {
-              this.router.navigate(['/clients']);
-            }
+            this.notificationService.success('Cliente creado correctamente');
+            this.router.navigate(['/clients']);
           },
-          error: (err: any) => {
+          error: (err) => {
             this.isLoading = false;
             console.error('Error creating client', err);
+            this.notificationService.error('Error al crear cliente');
           }
         });
       }
@@ -94,3 +97,4 @@ export class ClientFormComponent implements OnInit {
     this.router.navigate(['/clients']);
   }
 }
+

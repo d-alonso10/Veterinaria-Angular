@@ -3,8 +3,9 @@ import { Cliente } from './client.model';
 export interface IMascota {
   idMascota?: number;
   nombre: string;
-  especie: string;
+  especie: 'perro' | 'gato' | 'otro';
   raza: string;
+  sexo: 'macho' | 'hembra' | 'otro';
   fechaNacimiento: string; // YYYY-MM-DD
   cliente?: Cliente;
   idCliente?: number; // For forms
@@ -18,7 +19,10 @@ export interface IAtencion {
   diagnostico?: string;
   tratamiento?: string;
   costoTotal: number;
-  estado: 'PENDIENTE' | 'EN_PROCESO' | 'FINALIZADO' | 'CANCELADO';
+  estado: 'en_espera' | 'en_servicio' | 'pausado' | 'terminado';
+  idGroomer?: number;
+  idSucursal?: number;
+  turnoNum?: number;
 }
 
 export interface IReporteIngresos {
@@ -50,7 +54,7 @@ export interface IServicio {
   descripcion: string;
   precioBase: number;
   duracionEstimadaMin: number;
-  categoria: string; // 'baño', 'corte', etc.
+  categoria: 'baño' | 'corte' | 'dental' | 'paquete' | 'otro';
 }
 
 export interface ICita {
@@ -60,11 +64,32 @@ export interface ICita {
   idSucursal: number;
   idServicio: number;
   fechaProgramada: string; // LocalDateTime string
-  modalidad: 'presencial' | 'domicilio';
-  estado?: string;
+  modalidad: 'presencial' | 'virtual';
+  estado?: 'reservada' | 'confirmada' | 'asistio' | 'cancelada' | 'no_show';
   notas?: string;
   // Campos expandidos para mostrar en tablas (si el backend los devuelve poblados)
   nombreMascota?: string;
   nombreCliente?: string;
   nombreServicio?: string;
 }
+
+export interface IFactura {
+  idFactura?: number;
+  idAtencion: number;
+  serie: string;
+  numero: string;
+  metodoPagoSugerido: string;
+  estado: 'pendiente' | 'confirmado' | 'anulado';
+  fechaEmision?: string;
+  total?: number;
+}
+
+export interface IPago {
+  idPago?: number;
+  idFactura: number;
+  monto: number;
+  metodo: 'efectivo' | 'tarjeta' | 'transfer' | 'otro';
+  referencia?: string;
+  fechaPago?: string;
+}
+

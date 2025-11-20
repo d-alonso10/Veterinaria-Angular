@@ -1,0 +1,7 @@
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+.form-group {
+    flex: 1;
+}

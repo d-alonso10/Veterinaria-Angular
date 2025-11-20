@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ApiService, ApiResponse } from '../../../core/services/api.service';
+import { PetService } from '../../../core/services/pet.service';
 import { IMascota } from '../../../core/models/models';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -16,7 +16,7 @@ export class MascotaListComponent implements OnInit {
   mascotas: IMascota[] = [];
 
   constructor(
-    private apiService: ApiService,
+    private petService: PetService,
     private notificationService: NotificationService
   ) {}
 
@@ -25,13 +25,11 @@ export class MascotaListComponent implements OnInit {
   }
 
   loadMascotas() {
-    this.apiService.get<IMascota[]>('/mascotas').subscribe({
-      next: (response: ApiResponse<IMascota[]>) => {
-        if (response.exito && response.datos) {
-          this.mascotas = response.datos;
-        }
+    this.petService.getPets().subscribe({
+      next: (data) => {
+        this.mascotas = data;
       },
-      error: (error: any) => {
+      error: (error) => {
         console.error('Error loading pets', error);
         this.notificationService.error('Error al cargar mascotas');
       }
@@ -40,19 +38,17 @@ export class MascotaListComponent implements OnInit {
 
   deleteMascota(id: number) {
     if (confirm('¿Está seguro de eliminar esta mascota?')) {
-      this.apiService.delete(`/mascotas/${id}`).subscribe({
-        next: (response) => {
-          if (response.exito) {
-            this.notificationService.success('Mascota eliminada correctamente');
-            this.loadMascotas();
-          } else {
-            this.notificationService.error(response.mensaje || 'Error al eliminar mascota');
-          }
+      this.petService.deletePet(id).subscribe({
+        next: () => {
+          this.notificationService.success('Mascota eliminada correctamente');
+          this.loadMascotas();
         },
-        error: () => {
+        error: (error) => {
+          console.error('Error deleting pet', error);
           this.notificationService.error('Error al eliminar mascota');
         }
       });
     }
   }
 }
+

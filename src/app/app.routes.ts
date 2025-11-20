@@ -49,8 +49,24 @@ export const routes: Routes = [
         loadComponent: () => import('./features/pets/mascota-form/mascota-form.component').then(m => m.MascotaFormComponent)
       },
       {
+        path: 'appointments',
+        loadComponent: () => import('./features/appointments/appointment-list/appointment-list.component').then(m => m.AppointmentListComponent)
+      },
+      {
+        path: 'appointments/new',
+        loadComponent: () => import('./features/appointments/appointment-form/appointment-form.component').then(m => m.AppointmentFormComponent)
+      },
+      {
         path: 'queue',
         loadComponent: () => import('./features/atenciones/atencion-cola/atencion-cola.component').then(m => m.AtencionColaComponent)
+      },
+      {
+        path: 'reception',
+        loadComponent: () => import('./features/atenciones/reception/reception.component').then(m => m.ReceptionComponent)
+      },
+      {
+        path: 'attentions/:id',
+        loadComponent: () => import('./features/atenciones/attention-detail/attention-detail.component').then(m => m.AttentionDetailComponent)
       },
       {
         path: 'reports/average-times',

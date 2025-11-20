@@ -1,0 +1,44 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex;">
+        <h2>Detalle de Atención #{{ attentionId }}</h2>
+        <button (click)="finishAttention()" class="btn btn-success">Finalizar Atención</button>
+    </div>
+
+    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <h3>Servicios Realizados</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+                <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
+                    <th style="padding: 12px;">Servicio</th>
+                    <th style="padding: 12px;">Precio Unit.</th>
+                    <th style="padding: 12px;">Cantidad</th>
+                    <th style="padding: 12px;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (detail of details; track detail.idDetalle) {
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 12px;">{{ detail.nombreServicio }}</td>
+                        <td style="padding: 12px;">S/ {{ detail.precioUnitario }}</td>
+                        <td style="padding: 12px;">{{ detail.cantidad }}</td>
+                        <td style="padding: 12px;">S/ {{ detail.subtotal }}</td>
+                    </tr>
+                } @empty {
+                    <tr>
+                        <td colspan="4" style="padding: 20px; text-align: center;">No hay servicios registrados.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="add-service-form" style="display: flex; gap: 10px; align-items: center; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+            <select [(ngModel)]="selectedServiceId" class="form-control" style="flex: 1;">
+                <option [ngValue]="null">Agregar servicio extra...</option>
+                @for (servicio of servicios; track servicio.idServicio) {
+                    <option [value]="servicio.idServicio">{{ servicio.nombre }} - S/ {{ servicio.precioBase }}</option>
+                }
+            </select>
+            <button (click)="addService()" class="btn btn-primary" [disabled]="!selectedServiceId || isLoading">Agregar</button>
+        </div>
+    </div>
+</div>

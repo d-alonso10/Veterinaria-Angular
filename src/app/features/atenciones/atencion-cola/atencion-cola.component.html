@@ -8,7 +8,7 @@
 
     <div class="cola-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
         @for (atencion of cola(); track atencion.idAtencion) {
-            <div class="card cola-card" style="border-left: 5px solid var(--primary-color);">
+            <div class="card cola-card" [routerLink]="['/attentions', atencion.idAtencion]" style="border-left: 5px solid var(--primary-color); cursor: pointer;">
                 <div class="card-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span class="badge" style="background: #e3f2fd; color: var(--primary-color); padding: 4px 8px; border-radius: 4px;">
                         Turno #{{ atencion.idAtencion }}

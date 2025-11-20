@@ -1,0 +1,79 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px;">
+        <h2>Nueva Cita</h2>
+    </div>
+
+    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
+        <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+
+            <div class="form-group">
+                <label for="idCliente">Cliente</label>
+                <select id="idCliente" formControlName="idCliente" class="form-control">
+                    <option value="">Seleccione un cliente</option>
+                    @for (cliente of clientes; track cliente.idCliente) {
+                        <option [value]="cliente.idCliente">{{ cliente.nombre }} {{ cliente.apellido }}</option>
+                    }
+                </select>
+                @if (appointmentForm.get('idCliente')?.invalid && (appointmentForm.get('idCliente')?.dirty || appointmentForm.get('idCliente')?.touched)) {
+                    <div class="error-message">El cliente es requerido</div>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="idMascota">Mascota</label>
+                <select id="idMascota" formControlName="idMascota" class="form-control">
+                    <option value="">Seleccione una mascota</option>
+                    @for (mascota of mascotas; track mascota.idMascota) {
+                        <option [value]="mascota.idMascota">{{ mascota.nombre }} ({{ mascota.especie }})</option>
+                    }
+                </select>
+                @if (appointmentForm.get('idMascota')?.invalid && (appointmentForm.get('idMascota')?.dirty || appointmentForm.get('idMascota')?.touched)) {
+                    <div class="error-message">La mascota es requerida</div>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="idServicio">Servicio</label>
+                <select id="idServicio" formControlName="idServicio" class="form-control">
+                    <option value="">Seleccione un servicio</option>
+                    @for (servicio of servicios; track servicio.idServicio) {
+                        <option [value]="servicio.idServicio">{{ servicio.nombre }} - S/ {{ servicio.precioBase }}</option>
+                    }
+                </select>
+                @if (appointmentForm.get('idServicio')?.invalid && (appointmentForm.get('idServicio')?.dirty || appointmentForm.get('idServicio')?.touched)) {
+                    <div class="error-message">El servicio es requerido</div>
+                }
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fechaProgramada">Fecha y Hora</label>
+                    <input type="datetime-local" id="fechaProgramada" formControlName="fechaProgramada" class="form-control">
+                    @if (appointmentForm.get('fechaProgramada')?.invalid && (appointmentForm.get('fechaProgramada')?.dirty || appointmentForm.get('fechaProgramada')?.touched)) {
+                        <div class="error-message">La fecha y hora son requeridas</div>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label for="modalidad">Modalidad</label>
+                    <select id="modalidad" formControlName="modalidad" class="form-control">
+                        <option value="presencial">Presencial</option>
+                        <option value="virtual">Virtual</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="notas">Notas</label>
+                <textarea id="notas" formControlName="notas" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" routerLink="/appointments" class="btn btn-secondary" style="background-color: #95a5a6; color: white;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" [disabled]="appointmentForm.invalid || isLoading">
+                    {{ isLoading ? 'Guardando...' : 'Agendar Cita' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

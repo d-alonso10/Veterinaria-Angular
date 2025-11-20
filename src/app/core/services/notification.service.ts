@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type NotificationType = 'exito' | 'error' | 'info';
+export type NotificationType = 'exito' | 'error' | 'info' | 'warning';
 
 export interface Notification {
   message: string;
@@ -30,6 +30,10 @@ export class NotificationService {
 
   info(message: string) {
     this.show(message, 'info');
+  }
+
+  warning(message: string) {
+    this.show(message, 'warning');
   }
 
   clear() {
