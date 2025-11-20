@@ -23,10 +23,10 @@ export class LoginComponent {
     private authService: AuthService,
     private router: Router
   ) {
-    this.loginForm = this.fb.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required]
-    });
+  this.loginForm = this.fb.group({
+    email: ['', [Validators.required, Validators.email]], // Cambiado de username a email
+    password: ['', Validators.required]
+  });
   }
 
   onSubmit() {

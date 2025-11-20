@@ -5,7 +5,7 @@ import { ILoginResponse } from '../models/models';
 import { tap } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private currentUserSig = signal<{ username: string; rol: string } | null>(null);
@@ -13,16 +13,13 @@ export class AuthService {
   // Expose read-only signal
   currentUser = this.currentUserSig.asReadonly();
 
-  constructor(
-    private apiService: ApiService,
-    private router: Router
-  ) {
+  constructor(private apiService: ApiService, private router: Router) {
     this.restoreSession();
   }
 
   login(credentials: any) {
     return this.apiService.post<ILoginResponse>('/auth/login', credentials).pipe(
-      tap(response => {
+      tap((response) => {
         if (response.exito && response.datos) {
           this.setSession(response.datos);
         }
@@ -37,10 +34,15 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  // Dentro de setSession(authData: ILoginResponse)
   private setSession(authData: ILoginResponse) {
     localStorage.setItem('token', authData.token);
-    // Store minimal user info
-    const user = { username: authData.username, rol: authData.rol };
+    // Guardamos nombre y email en lugar de username
+    const user = {
+      username: authData.email, // Usamos el email como identificador principal
+      nombre: authData.nombre, // Guardamos el nombre real para mostrarlo
+      rol: authData.rol,
+    };
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUserSig.set(user);
   }

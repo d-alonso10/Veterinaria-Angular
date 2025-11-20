@@ -83,17 +83,17 @@ export class MascotaFormComponent implements OnInit {
   onSubmit() {
     if (this.mascotaForm.valid) {
       this.isLoading = true;
-      const mascotaData = this.mascotaForm.value;
+      const formValue = this.mascotaForm.value;
 
-      // Ensure idCliente is a number
-      mascotaData.idCliente = Number(mascotaData.idCliente);
-
-      // Construct payload expected by backend
-      // Backend likely expects a Cliente object or just the ID depending on DTO
-      // Assuming DTO has idCliente field or we send a partial Cliente object
+      // Construir el payload exacto según la documentación del Backend
       const payload = {
-        ...mascotaData,
-        cliente: { idCliente: mascotaData.idCliente }
+        idCliente: Number(formValue.idCliente), // El backend espera idCliente directo
+        nombre: formValue.nombre,
+        especie: formValue.especie,
+        raza: formValue.raza,
+        sexo: 'macho', // OJO: Falta este campo en tu formulario HTML, agrégalo o pon un default
+        fechaNacimiento: formValue.fechaNacimiento
+        // observaciones: '' // Opcional
       };
 
       if (this.isEditing && this.mascotaId) {

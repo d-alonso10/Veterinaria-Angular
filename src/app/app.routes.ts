@@ -3,6 +3,9 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
+  // Redirigir la ruta vacía al login por defecto
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+
   {
     path: 'login',
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)

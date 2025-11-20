@@ -28,13 +28,43 @@ export interface IReporteIngresos {
 }
 
 export interface ILoginResponse {
-  token: string;
-  username: string;
+  idUsuario: number;
+  nombre: string;
+  email: string;
   rol: string;
+  mensaje: string;
+  token: string;
+  tokenType: string;
 }
 
 export interface ITiempoPromedio {
   groomer: string;
   tiempoPromedio: number; // in minutes
   cantidadAtenciones: number;
+}
+
+export interface IServicio {
+  idServicio: number;
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+  precioBase: number;
+  duracionEstimadaMin: number;
+  categoria: string; // 'baño', 'corte', etc.
+}
+
+export interface ICita {
+  idCita?: number;
+  idMascota: number;
+  idCliente: number;
+  idSucursal: number;
+  idServicio: number;
+  fechaProgramada: string; // LocalDateTime string
+  modalidad: 'presencial' | 'domicilio';
+  estado?: string;
+  notas?: string;
+  // Campos expandidos para mostrar en tablas (si el backend los devuelve poblados)
+  nombreMascota?: string;
+  nombreCliente?: string;
+  nombreServicio?: string;
 }
