@@ -25,7 +25,7 @@ export class LoginComponent {
   ) {
   this.loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]], // Cambiado de username a email
-    password_hash: ['', Validators.required]
+    password: ['', Validators.required]
   });
   }
 
