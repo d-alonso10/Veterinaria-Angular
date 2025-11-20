@@ -3,8 +3,11 @@ import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 
+import { Router } from '@angular/router';
+
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notificationService = inject(NotificationService);
+  const router = inject(Router);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -18,9 +21,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         if (error.error && error.error.mensaje) {
             errorMessage = error.error.mensaje;
         } else if (error.status === 401) {
-            errorMessage = 'No autorizado. Por favor inicie sesión nuevamente.';
+            errorMessage = 'Sesión expirada. Por favor inicie sesión nuevamente.';
+            router.navigate(['/login']);
         } else if (error.status === 403) {
-            errorMessage = 'Acceso denegado.';
+            errorMessage = 'No tiene permisos para realizar esta acción.';
         } else {
             errorMessage = `Error Código: ${error.status}\nMensaje: ${error.message}`;
         }

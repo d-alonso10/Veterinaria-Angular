@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ApiService } from '../../../core/services/api.service';
+import { ApiService, ApiResponse } from '../../../core/services/api.service';
 import { Cliente } from '../../../core/models/client.model';
 import { IMascota } from '../../../core/models/models';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -48,7 +48,7 @@ export class MascotaFormComponent implements OnInit {
 
   loadClientes() {
     this.apiService.get<Cliente[]>('/clientes').subscribe({
-      next: (response: any) => {
+      next: (response: ApiResponse<Cliente[]>) => {
         if (response.exito && response.datos) {
           this.clientes = response.datos;
         }
@@ -59,7 +59,7 @@ export class MascotaFormComponent implements OnInit {
   loadMascota(id: number) {
     this.isLoading = true;
     this.apiService.get<IMascota>(`/mascotas/${id}`).subscribe({
-      next: (response: any) => {
+      next: (response: ApiResponse<IMascota>) => {
         this.isLoading = false;
         if (response.exito && response.datos) {
           const mascota = response.datos;
@@ -98,7 +98,7 @@ export class MascotaFormComponent implements OnInit {
 
       if (this.isEditing && this.mascotaId) {
         this.apiService.put(`/mascotas/${this.mascotaId}`, payload).subscribe({
-          next: (response: any) => {
+          next: (response: ApiResponse<any>) => {
             this.isLoading = false;
             if (response.exito) {
               this.notificationService.success('Mascota actualizada correctamente');
@@ -114,7 +114,7 @@ export class MascotaFormComponent implements OnInit {
         });
       } else {
         this.apiService.post('/mascotas', payload).subscribe({
-          next: (response: any) => {
+          next: (response: ApiResponse<any>) => {
             this.isLoading = false;
             if (response.exito) {
               this.notificationService.success('Mascota creada correctamente');

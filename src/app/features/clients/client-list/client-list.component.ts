@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ApiService } from '../../../core/services/api.service';
+import { ApiService, ApiResponse } from '../../../core/services/api.service';
 import { Cliente } from '../../../core/models/client.model';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -26,7 +26,7 @@ export class ClientListComponent implements OnInit {
 
   loadClientes() {
     this.apiService.get<Cliente[]>('/clientes').subscribe({
-      next: (response: any) => {
+      next: (response: ApiResponse<Cliente[]>) => {
         if (response.exito && response.datos) {
           this.clientes = response.datos;
         }

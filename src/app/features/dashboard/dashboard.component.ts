@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ApiService } from '../../core/services/api.service';
+import { ApiService, ApiResponse } from '../../core/services/api.service';
 import { IAtencion, IReporteIngresos } from '../../core/models/models';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -31,7 +31,7 @@ export class DashboardComponent {
     // 1. Citas del Día (Mocked endpoint or real if exists)
     // Assuming GET /api/dashboard/citas-hoy returns a count or list
     this.apiService.get<any>('/dashboard/citas-hoy').subscribe({
-      next: (res) => {
+      next: (res: ApiResponse<any>) => {
         if (res.exito) this.citasHoy = res.datos;
       },
       error: () => this.citasHoy = 0 // Fail silently or show error
@@ -39,7 +39,7 @@ export class DashboardComponent {
 
     // 2. Atenciones en Curso
     this.apiService.get<IAtencion[]>('/atenciones', { estado: 'EN_PROCESO' }).subscribe({
-      next: (res) => {
+      next: (res: ApiResponse<IAtencion[]>) => {
         if (res.exito && res.datos) {
           this.atencionesEnCurso = res.datos.length;
         }
@@ -48,8 +48,8 @@ export class DashboardComponent {
 
     // 3. Ingresos del Día
     const today = new Date().toISOString().split('T')[0];
-    this.apiService.get<IReporteIngresos>(`/reportes/ingresos?fecha=${today}`).subscribe({
-      next: (res) => {
+    this.apiService.get<IReporteIngresos>(`/reportes/ingresos?fechaInicio=${today}`).subscribe({
+      next: (res: ApiResponse<IReporteIngresos>) => {
         if (res.exito && res.datos) {
           this.ingresosDia = res.datos.totalIngresos;
         }
@@ -58,7 +58,7 @@ export class DashboardComponent {
 
     // 4. Total Clientes
     this.apiService.get<any[]>('/clientes').subscribe({
-      next: (res) => {
+      next: (res: ApiResponse<any[]>) => {
         if (res.exito && res.datos) {
           this.totalClientes = res.datos.length;
         }

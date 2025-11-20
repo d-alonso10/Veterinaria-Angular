@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ApiResponse } from '../../../core/services/api.service';
+import { ILoginResponse } from '../../../core/models/models';
 
 @Component({
   selector: 'app-login',
@@ -34,7 +36,7 @@ export class LoginComponent {
       const credentials = this.loginForm.value;
 
       this.authService.login(credentials).subscribe({
-        next: (response: any) => {
+        next: (response: ApiResponse<ILoginResponse>) => {
           this.isLoading = false;
           if (response.exito) {
             this.router.navigate(['/dashboard']);

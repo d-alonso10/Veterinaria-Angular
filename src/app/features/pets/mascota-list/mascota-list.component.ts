@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ApiService } from '../../../core/services/api.service';
+import { ApiService, ApiResponse } from '../../../core/services/api.service';
 import { IMascota } from '../../../core/models/models';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -26,7 +26,7 @@ export class MascotaListComponent implements OnInit {
 
   loadMascotas() {
     this.apiService.get<IMascota[]>('/mascotas').subscribe({
-      next: (response: any) => {
+      next: (response: ApiResponse<IMascota[]>) => {
         if (response.exito && response.datos) {
           this.mascotas = response.datos;
         }
