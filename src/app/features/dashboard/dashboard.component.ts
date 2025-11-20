@@ -18,6 +18,8 @@ export class DashboardComponent {
   ingresosDia: number = 0;
   totalClientes: number = 0;
 
+  isLoading = true;
+
   constructor(
     private apiService: ApiService,
     private notificationService: NotificationService
@@ -28,44 +30,45 @@ export class DashboardComponent {
   }
 
   loadStats() {
-    // 1. Citas del Día (Mocked endpoint or real if exists)
-    // Assuming GET /api/dashboard/citas-hoy returns a count or list
-    this.apiService.get<any>('/dashboard/citas-hoy').subscribe({
-      next: (res: ApiResponse<any>) => {
-        if (res.exito) this.citasHoy = res.datos;
-      },
-      error: () => this.citasHoy = 0 // Fail silently or show error
-    });
-
-    // 2. Atenciones en Curso
-    this.apiService.get<IAtencion[]>('/atenciones', { estado: 'EN_PROCESO' }).subscribe({
-      next: (res: ApiResponse<IAtencion[]>) => {
-        if (res.exito && res.datos) {
-          this.atencionesEnCurso = res.datos.length;
-        }
-      }
-    });
-
-    // 3. Ingresos del Día
+    this.isLoading = true;
     const today = new Date().toISOString().split('T')[0];
-    this.apiService.get<any[]>(`/reportes/ingresos?fechaInicio=${today}`).subscribe({
-      next: (res: ApiResponse<any[]>) => {
-        if (res.exito && res.datos) {
-          // Mapeo manual: Backend devuelve List<Object[]> -> [ ["2023-11-20", 500.00] ]
-          // Asumimos que si filtramos por hoy, solo viene un registro o varios que debemos sumar
-          const total = res.datos.reduce((acc, item) => acc + (item[1] || 0), 0);
-          this.ingresosDia = total;
-        }
-      }
-    });
 
-    // 4. Total Clientes
-    this.apiService.get<any[]>('/clientes').subscribe({
-      next: (res: ApiResponse<any[]>) => {
-        if (res.exito && res.datos) {
-          this.totalClientes = res.datos.length;
+    // Usamos forkJoin para esperar a que todas las peticiones terminen
+    // Importamos forkJoin de rxjs
+    import('rxjs').then(({ forkJoin }) => {
+      forkJoin({
+        citas: this.apiService.get<any>('/dashboard/citas-hoy'),
+        atenciones: this.apiService.get<IAtencion[]>('/atenciones', { estado: 'EN_PROCESO' }),
+        ingresos: this.apiService.get<any[]>(`/reportes/ingresos?fechaInicio=${today}`),
+        clientes: this.apiService.get<any[]>('/clientes')
+      }).subscribe({
+        next: (results) => {
+          this.isLoading = false;
+
+          // 1. Citas
+          if (results.citas.exito) this.citasHoy = results.citas.datos;
+
+          // 2. Atenciones
+          if (results.atenciones.exito && results.atenciones.datos) {
+            this.atencionesEnCurso = results.atenciones.datos.length;
+          }
+
+          // 3. Ingresos
+          if (results.ingresos.exito && results.ingresos.datos) {
+            this.ingresosDia = results.ingresos.datos.reduce((acc, item) => acc + (item[1] || 0), 0);
+          }
+
+          // 4. Clientes
+          if (results.clientes.exito && results.clientes.datos) {
+            this.totalClientes = results.clientes.datos.length;
+          }
+        },
+        error: (err) => {
+          this.isLoading = false;
+          console.error('Error loading dashboard stats', err);
+          this.notificationService.error('Error al cargar estadísticas del dashboard');
         }
-      }
+      });
     });
   }
 }
