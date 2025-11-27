@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DashboardService } from '../../../core/services/dashboard.service';
+import { ReportService } from '../../../core/services/report.service';
 
 @Component({
   selector: 'app-reporte-ingresos',
@@ -17,12 +17,16 @@ export class ReporteIngresosComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private dashboardService: DashboardService
+    private reportService: ReportService
   ) {
-    const today = new Date().toISOString().split('T')[0];
+    // Inicializar con el mes actual
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
     this.filterForm = this.fb.group({
-      fechaInicio: [today, Validators.required],
-      fechaFin: [today, Validators.required],
+      fechaInicio: [firstDay.toISOString().split('T')[0], Validators.required],
+      fechaFin: [lastDay.toISOString().split('T')[0], Validators.required],
       idSucursal: [1, Validators.required]
     });
   }
@@ -36,10 +40,11 @@ export class ReporteIngresosComponent implements OnInit {
       this.isLoading = true;
       const { fechaInicio, fechaFin, idSucursal } = this.filterForm.value;
 
-      this.dashboardService.getIngresos(fechaInicio, fechaFin, idSucursal).subscribe({
+      this.reportService.getIngresos(fechaInicio, fechaFin, idSucursal).subscribe({
         next: (data) => {
           this.isLoading = false;
           this.ingresos = data;
+          console.log('📊 Ingresos cargados:', data);
         },
         error: (error) => {
           this.isLoading = false;
@@ -49,7 +54,19 @@ export class ReporteIngresosComponent implements OnInit {
     }
   }
 
-  getTotalIngresos(): number {
-    return this.ingresos.reduce((sum, item) => sum + (item.total || 0), 0);
+  // Métodos helper según estructura REAL del backend
+  // Backend retorna: ingresos_totales, cantidad_facturas, promedio_por_factura
+  getTotalFacturado(): number {
+    return this.ingresos.reduce((sum, item) => sum + (item.ingresos_totales || 0), 0);
+  }
+
+  getTotalFacturas(): number {
+    return this.ingresos.reduce((sum, item) => sum + (item.cantidad_facturas || 0), 0);
+  }
+
+  getPromedioGeneral(): number {
+    const total = this.getTotalFacturado();
+    const cantidad = this.getTotalFacturas();
+    return cantidad > 0 ? total / cantidad : 0;
   }
 }
