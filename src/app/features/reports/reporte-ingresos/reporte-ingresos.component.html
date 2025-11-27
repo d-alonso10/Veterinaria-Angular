@@ -1,0 +1,71 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px;">
+        <h2>Reporte de Ingresos</h2>
+    </div>
+
+    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <form [formGroup]="filterForm" (ngSubmit)="loadIngresos()">
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                <div class="form-group">
+                    <label for="fechaInicio">Fecha Inicio</label>
+                    <input type="date" id="fechaInicio" formControlName="fechaInicio" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="fechaFin">Fecha Fin</label>
+                    <input type="date" id="fechaFin" formControlName="fechaFin" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="idSucursal">Sucursal</label>
+                    <select id="idSucursal" formControlName="idSucursal" class="form-control">
+                        <option value="1">Sucursal Principal</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" [disabled]="filterForm.invalid || isLoading">
+                    {{ isLoading ? 'Cargando...' : 'Buscar' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+        @if (isLoading) {
+            <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                Cargando...
+            </div>
+        } @else if (ingresos.length > 0) {
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
+                        <th style="padding: 12px;">Fecha</th>
+                        <th style="padding: 12px;">Servicio</th>
+                        <th style="padding: 12px;">Cliente</th>
+                        <th style="padding: 12px;">Mascota</th>
+                        <th style="padding: 12px; text-align: right;">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (ingreso of ingresos; track $index) {
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">{{ ingreso.fecha | date:'short' }}</td>
+                            <td style="padding: 12px;">{{ ingreso.servicio }}</td>
+                            <td style="padding: 12px;">{{ ingreso.cliente }}</td>
+                            <td style="padding: 12px;">{{ ingreso.mascota }}</td>
+                            <td style="padding: 12px; text-align: right;">S/ {{ ingreso.total | number:'1.2-2' }}</td>
+                        </tr>
+                    }
+                    <tr style="border-top: 2px solid #3498db; font-weight: bold;">
+                        <td colspan="4" style="padding: 12px; text-align: right;">TOTAL:</td>
+                        <td style="padding: 12px; text-align: right; color: #27ae60;">S/ {{ getTotalIngresos() | number:'1.2-2' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        } @else {
+            <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                No hay ingresos para el período seleccionado
+            </div>
+        }
+    </div>
+</div>

@@ -78,10 +78,15 @@ export class AttentionDetailComponent implements OnInit {
   addService() {
     if (this.attentionId && this.selectedServiceId) {
       this.isLoading = true;
+      const servicio = this.servicios.find(s => s.idServicio === this.selectedServiceId);
       const serviceData = {
-        idServicio: this.selectedServiceId,
+        servicio: {
+          idServicio: this.selectedServiceId
+        },
         cantidad: 1,
-        notas: ''
+        precioUnitario: servicio?.precioBase || 0,
+        subtotal: servicio?.precioBase || 0,
+        observaciones: ''
       };
 
       this.attentionService.addService(this.attentionId, serviceData).subscribe({

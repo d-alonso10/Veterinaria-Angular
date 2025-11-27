@@ -1,38 +1,241 @@
 <div class="main-content">
-    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex;">
-        <h2>Listado de Mascotas</h2>
-        <a routerLink="/pets/new" class="btn btn-primary">➕ Nueva Mascota</a>
+  <div class="header-actions">
+    <div>
+      <h2>🐾 Listado de Mascotas</h2>
+      <p class="subtitle">Gestiona el registro de mascotas</p>
+    </div>
+    <a routerLink="/pets/new" class="btn btn-primary">
+      ➕ Nueva Mascota
+    </a>
+  </div>
+
+  <div class="card">
+    <!-- Search Bar -->
+    <div class="search-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, raza o dueño..."
+          [(ngModel)]="searchTerm"
+          (input)="filterMascotas()"
+          class="search-input"
+        >
+      </div>
+      <div class="results-count">
+        <span class="count-badge">{{ filteredMascotas.length }}</span>
+        {{ filteredMascotas.length === 1 ? 'mascota encontrada' : 'mascotas encontradas' }}
+      </div>
     </div>
 
-    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
-                    <th style="padding: 12px;">Nombre</th>
-                    <th style="padding: 12px;">Especie</th>
-                    <th style="padding: 12px;">Raza</th>
-                    <th style="padding: 12px;">Dueño</th>
-                    <th style="padding: 12px;">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (mascota of mascotas; track mascota.idMascota) {
-                    <tr style="border-bottom: 1px solid #f0f0f0;">
-                        <td style="padding: 12px;">{{ mascota.nombre }}</td>
-                        <td style="padding: 12px;">{{ mascota.especie }}</td>
-                        <td style="padding: 12px;">{{ mascota.raza }}</td>
-                        <td style="padding: 12px;">{{ mascota.cliente?.nombre }} {{ mascota.cliente?.apellido }}</td>
-                        <td style="padding: 12px;">
-                            <a [routerLink]="['/pets', mascota.idMascota]" class="btn btn-info btn-small" style="margin-right: 5px;">Editar</a>
-                            <button (click)="deleteMascota(mascota.idMascota!)" class="btn btn-danger btn-small" style="background-color: var(--danger-color); color: white;">Eliminar</button>
-                        </td>
-                    </tr>
-                } @empty {
-                    <tr>
-                        <td colspan="5" style="padding: 20px; text-align: center; color: var(--text-light);">No hay mascotas registradas.</td>
-                    </tr>
+    <!-- Pets Table -->
+    <div class="table-container">
+      <table class="mascotas-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Mascota</th>
+            <th>Especie & Raza</th>
+            <th>Edad & Sexo</th>
+            <th>Dueño</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (mascota of filteredMascotas; track mascota.idMascota) {
+            <tr class="mascota-row">
+              <td>
+                <div class="mascota-id">{{ mascota.idMascota }}</div>
+              </td>
+              <td>
+                <div class="mascota-info">
+                  <div class="mascota-avatar" [class]="'avatar-' + mascota.especie">
+                    {{ getSpeciesIcon(mascota.especie) }}
+                  </div>
+                  <div class="mascota-details">
+                    <span class="mascota-name">{{ mascota.nombre }}</span>
+                    <span class="mascota-birth">🎂 {{ mascota.fechaNacimiento | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="species-info">
+                  <span [class]="'species-badge badge-' + mascota.especie">
+                    {{ mascota.especie | titlecase }}
+                  </span>
+                  <span class="breed-text">{{ mascota.raza }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="age-sex-info">
+                  <span class="age-badge">
+                    {{ getAge(mascota.fechaNacimiento) }}
+                  </span>
+                  <span [class]="'sex-badge sex-' + mascota.sexo">
+                    {{ getSexIcon(mascota.sexo) }} {{ mascota.sexo | titlecase }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                @if (mascota.cliente) {
+                  <div class="owner-info">
+                    <div class="owner-avatar">
+                      {{ getInitials(mascota.cliente.nombre, mascota.cliente.apellido) }}
+                    </div>
+                    <div class="owner-details">
+                      <span class="owner-name">{{ mascota.cliente.nombre }} {{ mascota.cliente.apellido }}</span>
+                      <span class="owner-contact">📱 {{ mascota.cliente.telefono }}</span>
+                    </div>
+                  </div>
+                } @else {
+                  <span class="no-data">Sin dueño asignado</span>
                 }
-            </tbody>
-        </table>
+              </td>
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <button (click)="viewHistory(mascota)"
+                          class="btn-action btn-history"
+                          title="Ver Historial">
+                    📋
+                  </button>
+                  <a [routerLink]="['/pets', mascota.idMascota]"
+                     class="btn-action btn-edit"
+                     title="Editar">
+                    ✏️
+                  </a>
+                  <button (click)="deleteMascota(mascota.idMascota!)"
+                          class="btn-action btn-delete"
+                          title="Eliminar">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-state">
+                <div class="empty-content">
+                  <div class="empty-icon">🐾</div>
+                  <p>No hay mascotas registradas</p>
+                  <a routerLink="/pets/new" class="btn btn-primary-small">Agregar primera mascota</a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
+
+    <!-- Pagination Info -->
+    @if (filteredMascotas.length > 0) {
+      <div class="table-footer">
+        <span class="footer-text">
+          Mostrando {{ filteredMascotas.length }} de {{ mascotas.length }} mascotas
+        </span>
+      </div>
+    }
+  </div>
 </div>
+
+<!-- History Modal (existing modal code remains) -->
+@if (showHistoryModal) {
+  <div class="modal-overlay" (click)="closeHistoryModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📋 Historial de Atención - {{ selectedPetName }}</h3>
+        <button class="modal-close" (click)="closeHistoryModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        @if (loadingHistory) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando historial...</p>
+          </div>
+        } @else if (selectedPetHistory.length > 0) {
+          <div class="history-grid">
+            @for (item of selectedPetHistory; track item.id_atencion) {
+              <div class="history-card">
+                <div class="card-header-info">
+                  <div class="service-info">
+                    <div class="service-icon">✂️</div>
+                    <div>
+                      <h4 class="service-name">{{ item.servicios }}</h4>
+                      <span class="service-id">#{{ item.id_atencion }}</span>
+                    </div>
+                  </div>
+                  <div class="service-price">
+                    <span class="price-label">Total</span>
+                    <span class="price-value">S/ {{ item.monto_facturado | number:'1.2-2' }}</span>
+                  </div>
+                </div>
+
+                <div class="service-details">
+                  <div class="detail-row">
+                    <span class="detail-icon">👤</span>
+                    <div class="detail-content">
+                      <span class="detail-label">Groomer</span>
+                      <span class="detail-value">{{ item.groomer }}</span>
+                    </div>
+                  </div>
+
+                  <div class="detail-row">
+                    <span class="detail-icon">🏢</span>
+                    <div class="detail-content">
+                      <span class="detail-label">Sucursal</span>
+                      <span class="detail-value">{{ item.sucursal }}</span>
+                    </div>
+                  </div>
+
+                  <div class="detail-row">
+                    <span class="detail-icon">📅</span>
+                    <div class="detail-content">
+                      <span class="detail-label">Inicio</span>
+                      <span class="detail-value">{{ item.tiempo_real_inicio | date:'dd/MM/yyyy h:mm a' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="detail-row">
+                    <span class="detail-icon">🏁</span>
+                    <div class="detail-content">
+                      <span class="detail-label">Fin</span>
+                      <span class="detail-value">{{ item.tiempo_real_fin | date:'dd/MM/yyyy h:mm a' }}</span>
+                    </div>
+                  </div>
+
+                  @if (item.tiempo_real_inicio && item.tiempo_real_fin) {
+                    <div class="detail-row duration-row">
+                      <span class="detail-icon">⏱️</span>
+                      <div class="detail-content">
+                        <span class="detail-label">Duración</span>
+                        <span class="detail-value duration-badge">
+                          {{ calculateDuration(item.tiempo_real_inicio, item.tiempo_real_fin) }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="history-summary">
+            <div class="summary-item">
+              <span class="summary-label">Total de atenciones</span>
+              <span class="summary-value">{{ selectedPetHistory.length }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Total gastado</span>
+              <span class="summary-value total-spent">S/ {{ getTotalSpent() | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        } @else {
+          <div class="empty-history">
+            <div class="empty-icon">📭</div>
+            <p>No hay historial de atenciones para esta mascota</p>
+            <small>Las atenciones aparecerán aquí una vez que se realicen servicios</small>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

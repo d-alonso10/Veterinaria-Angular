@@ -1,0 +1,52 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex;">
+        <h2>Gestión de Sucursales</h2>
+        <a routerLink="/admin/branches/new" class="btn btn-primary">➕ Nueva Sucursal</a>
+    </div>
+
+    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+        @if (isLoading) {
+            <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                Cargando sucursales...
+            </div>
+        } @else {
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
+                        <th style="padding: 12px;">Nombre</th>
+                        <th style="padding: 12px;">Dirección</th>
+                        <th style="padding: 12px;">Teléfono</th>
+                        <th style="padding: 12px;">Email</th>
+                        <th style="padding: 12px;">Horario</th>
+                        <th style="padding: 12px;">Estado</th>
+                        <th style="padding: 12px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (branch of branches; track branch.idSucursal) {
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px; font-weight: 500;">{{ branch.nombre }}</td>
+                            <td style="padding: 12px;">{{ branch.direccion }}</td>
+                            <td style="padding: 12px;">{{ branch.telefono }}</td>
+                            <td style="padding: 12px;">{{ branch.email }}</td>
+                            <td style="padding: 12px;">{{ branch.horarioApertura }} - {{ branch.horarioCierre }}</td>
+                            <td style="padding: 12px;">
+                                <span [ngClass]="branch.activo ? 'badge-success' : 'badge-danger'" style="padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">
+                                    {{ branch.activo ? 'Activa' : 'Inactiva' }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px;">
+                                <a [routerLink]="['/admin/branches', branch.idSucursal]" class="btn btn-small btn-warning" style="margin-right: 5px; background-color: #f39c12; color: white;">Editar</a>
+                                <button (click)="deleteBranch(branch.idSucursal!)" class="btn btn-small btn-danger">Eliminar</button>
+                            </td>
+                        </tr>
+                    } @empty {
+                        <tr>
+                            <td colspan="7" style="padding: 20px; text-align: center; color: var(--text-light);">No hay sucursales registradas.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

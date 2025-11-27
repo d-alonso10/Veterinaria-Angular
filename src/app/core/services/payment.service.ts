@@ -8,11 +8,37 @@ import { IPago } from '../models/models';
   providedIn: 'root'
 })
 export class PaymentService {
+  constructor(private apiService: ApiService) {}
 
-  constructor(private apiService: ApiService) { }
+  getAll(): Observable<IPago[]> {
+    return this.apiService.get<IPago[]>('/api/pagos').pipe(
+      map(response => response.datos || [])
+    );
+  }
 
-  registrarPago(pago: IPago): Observable<IPago> {
-    return this.apiService.post<IPago>('/pagos', pago).pipe(
+  getById(id: number): Observable<IPago> {
+    return this.apiService.get<IPago>(`/api/pagos/${id}`).pipe(
+      map(response => response.datos!)
+    );
+  }
+
+  getByFactura(idFactura: number): Observable<IPago[]> {
+    return this.apiService.get<IPago[]>(`/api/pagos/factura/${idFactura}`).pipe(
+      map(response => response.datos || [])
+    );
+  }
+
+  getConfirmed(): Observable<IPago[]> {
+    return this.apiService.get<IPago[]>('/api/pagos/confirmados').pipe(
+      map(response => response.datos || [])
+    );
+  }
+
+  registrarPago(idFactura: number, monto: number, metodo: string, referencia?: string): Observable<string> {
+    const params: any = { idFactura, monto, metodo };
+    if (referencia) params.referencia = referencia;
+
+    return this.apiService.postFormUrlEncoded<string>('/api/pagos', params).pipe(
       map(response => response.datos!)
     );
   }

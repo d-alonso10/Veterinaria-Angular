@@ -51,7 +51,7 @@ export class ClientFormComponent implements OnInit {
       next: (client) => {
         this.clientForm.patchValue(client);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error loading client', err);
         this.notificationService.error('Error al cargar cliente');
       }
@@ -70,7 +70,7 @@ export class ClientFormComponent implements OnInit {
             this.notificationService.success('Cliente actualizado correctamente');
             this.router.navigate(['/clients']);
           },
-          error: (err) => {
+          error: (err: any) => {
             this.isLoading = false;
             console.error('Error updating client', err);
             this.notificationService.error('Error al actualizar cliente');
@@ -83,7 +83,7 @@ export class ClientFormComponent implements OnInit {
             this.notificationService.success('Cliente creado correctamente');
             this.router.navigate(['/clients']);
           },
-          error: (err) => {
+          error: (err: any) => {
             this.isLoading = false;
             console.error('Error creating client', err);
             this.notificationService.error('Error al crear cliente');

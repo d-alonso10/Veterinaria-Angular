@@ -1,0 +1,126 @@
+<div class="main-content">
+  <div class="header-actions">
+    <div>
+      <h2>✂️ Gestión de Servicios</h2>
+      <p class="subtitle">Administra el catálogo de servicios</p>
+    </div>
+    <a routerLink="/services/new" class="btn btn-primary">
+      ➕ Nuevo Servicio
+    </a>
+  </div>
+
+  <div class="card">
+    <!-- Search Bar -->
+    <div class="search-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, categoría o código..."
+          [(ngModel)]="searchTerm"
+          (input)="filterServices()"
+          class="search-input"
+        >
+      </div>
+      <div class="results-count">
+        <span class="count-badge">{{ filteredServices.length }}</span>
+        {{ filteredServices.length === 1 ? 'servicio encontrado' : 'servicios encontrados' }}
+      </div>
+    </div>
+
+    <!-- Services Table -->
+    <div class="table-container">
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando servicios...</p>
+        </div>
+      } @else {
+        <table class="services-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Servicio</th>
+              <th>Categoría</th>
+              <th>Duración & Precio</th>
+              <th>Descripción</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (service of filteredServices; track service.idServicio) {
+              <tr class="service-row">
+                <td>
+                  <div class="service-id">{{ service.idServicio }}</div>
+                </td>
+                <td>
+                  <div class="service-info">
+                    <div [class]="'service-icon icon-' + service.categoria">
+                      {{ getCategoryIcon(service.categoria!) }}
+                    </div>
+                    <div class="service-details">
+                      <span class="service-name">{{ service.nombre }}</span>
+                      <span class="service-code">{{ service.codigo }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span [class]="'category-badge cat-' + service.categoria">
+                    {{ getCategoryLabel(service.categoria!) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="duration-price">
+                    <div class="duration-info">
+                      <span class="duration-icon">⏱️</span>
+                      <span class="duration-text">{{ service.duracionEstimadaMin }} min</span>
+                    </div>
+                    <div class="price-info">
+                      <span class="price-value">S/ {{ service.precioBase | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="description-text">{{ service.descripcion || 'Sin descripción' }}</span>
+                </td>
+                <td class="actions-cell">
+                  <div class="action-buttons">
+                    <a [routerLink]="['/services', service.idServicio]"
+                       class="btn-action btn-edit"
+                       title="Editar">
+                      ✏️
+                    </a>
+                    <button (click)="deleteService(service.idServicio!)"
+                            class="btn-action btn-delete"
+                            title="Eliminar">
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-state">
+                  <div class="empty-content">
+                    <div class="empty-icon">✂️</div>
+                    <p>No hay servicios registrados</p>
+                    <a routerLink="/services/new" class="btn btn-primary-small">Agregar primer servicio</a>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Pagination Info -->
+    @if (filteredServices.length > 0 && !isLoading) {
+      <div class="table-footer">
+        <span class="footer-text">
+          Mostrando {{ filteredServices.length }} de {{ services.length }} servicios
+        </span>
+      </div>
+    }
+  </div>
+</div>

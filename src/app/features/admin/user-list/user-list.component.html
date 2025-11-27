@@ -1,0 +1,54 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex;">
+        <h2>Gestión de Usuarios</h2>
+        <a routerLink="/admin/users/new" class="btn btn-primary">➕ Nuevo Usuario</a>
+    </div>
+
+    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+        @if (isLoading) {
+            <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                Cargando usuarios...
+            </div>
+        } @else {
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
+                        <th style="padding: 12px;">Nombre</th>
+                        <th style="padding: 12px;">Email</th>
+                        <th style="padding: 12px;">Rol</th>
+                        <th style="padding: 12px;">Sucursal</th>
+                        <th style="padding: 12px;">Estado</th>
+                        <th style="padding: 12px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (user of users; track user.idUsuario) {
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">{{ user.nombre }} {{ user.apellido }}</td>
+                            <td style="padding: 12px;">{{ user.email }}</td>
+                            <td style="padding: 12px;">
+                                <span [ngClass]="getRoleBadgeClass(user.rol)" style="padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">
+                                    {{ user.rol }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px;">Sucursal #{{ user.idSucursal }}</td>
+                            <td style="padding: 12px;">
+                                <span [ngClass]="user.activo ? 'badge-success' : 'badge-danger'" style="padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">
+                                    {{ user.activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px;">
+                                <a [routerLink]="['/admin/users', user.idUsuario]" class="btn btn-small btn-warning" style="margin-right: 5px; background-color: #f39c12; color: white;">Editar</a>
+                                <button (click)="deleteUser(user.idUsuario!)" class="btn btn-small btn-danger">Eliminar</button>
+                            </td>
+                        </tr>
+                    } @empty {
+                        <tr>
+                            <td colspan="6" style="padding: 20px; text-align: center; color: var(--text-light);">No hay usuarios registrados.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

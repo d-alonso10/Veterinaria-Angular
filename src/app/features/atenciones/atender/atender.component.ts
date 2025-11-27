@@ -1,0 +1,376 @@
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { interval, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { AttentionService } from '../../../core/services/attention.service';
+import { ServiceService } from '../../../core/services/service.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { IAtencion, IServicio } from '../../../core/models/models';
+
+interface NuevoServicio {
+  idServicio: number | string;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+  observaciones: string;
+}
+
+interface DetalleServicio {
+  idDetalle?: number;
+  servicio?: IServicio;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+  observaciones?: string;
+}
+
+@Component({
+  selector: 'app-atender',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './atender.component.html',
+  styleUrl: './atender.component.css'
+})
+export class AtenderComponent implements OnInit, OnDestroy {
+  atencion: IAtencion | null = null;
+  idAtencion: number = 0;
+
+  isLoading = signal(false);
+  isProcessing = signal(false);
+
+  // 🆕 Controles de estado
+  servicioEnCurso = signal(false);
+  servicioTerminado = signal(false);
+
+  serviciosDisponibles = signal<IServicio[]>([]);
+  serviciosRealizados = signal<DetalleServicio[]>([]);
+
+  nuevoServicio: NuevoServicio = {
+    idServicio: '',
+    cantidad: 1,
+    precioUnitario: 0,
+    subtotal: 0,
+    observaciones: ''
+  };
+
+  observacionesGenerales: string = '';
+  tiempoTranscurrido: string = '0 min';
+
+  private destroy$ = new Subject<void>();
+  private timerInterval$?: any;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private attentionService: AttentionService,
+    private serviceService: ServiceService,
+    private notificationService: NotificationService
+  ) {}
+
+  ngOnInit() {
+    this.idAtencion = Number(this.route.snapshot.paramMap.get('id'));
+
+    if (!this.idAtencion) {
+      this.notificationService.error('ID de atención inválido');
+      this.router.navigate(['/atenciones']);
+      return;
+    }
+
+    this.cargarDatos();
+    this.iniciarTimer();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.timerInterval$) {
+      clearInterval(this.timerInterval$);
+    }
+  }
+
+  cargarDatos() {
+    this.isLoading.set(true);
+
+    // Cargar atención
+    this.attentionService.getById(this.idAtencion).subscribe({
+      next: (atencion) => {
+        this.atencion = atencion;
+        this.observacionesGenerales = atencion.observaciones || '';
+        this.isLoading.set(false);
+
+        // 🆕 ETAPA B: Controlar si está en_espera
+        if (atencion.estado === 'en_espera') {
+          this.servicioEnCurso.set(false);
+          console.log('⏳ Atención en espera. Mostrar botón INICIAR SERVICIO');
+        } else if (atencion.estado === 'en_servicio') {
+          this.servicioEnCurso.set(true);
+          console.log('⚙️ Atención en servicio. Servicios desbloqueados');
+        } else if (atencion.estado === 'terminado') {
+          this.servicioTerminado.set(true);
+          console.log('✅ Atención terminada');
+        }
+
+        // Cargar detalles de servicios ya agregados
+        this.cargarServiciosRealizados();
+      },
+      error: (error) => {
+        console.error('Error cargando atención', error);
+        this.notificationService.error('Error al cargar la atención');
+        this.isLoading.set(false);
+        this.router.navigate(['/atenciones']);
+      }
+    });
+
+    // Cargar servicios disponibles
+    this.serviceService.getServices().subscribe({
+      next: (servicios) => {
+        console.log('Servicios cargados:', servicios);
+        this.serviciosDisponibles.set(servicios);
+      },
+      error: (error) => {
+        console.error('Error cargando servicios', error);
+        this.notificationService.error('Error al cargar los servicios disponibles');
+      }
+    });
+  }
+
+  cargarServiciosRealizados() {
+    this.attentionService.getDetails(this.idAtencion).subscribe({
+      next: (detalles) => {
+        this.serviciosRealizados.set(detalles);
+      },
+      error: (error) => {
+        console.error('Error cargando detalles', error);
+      }
+    });
+  }
+
+  iniciarTimer() {
+    this.timerInterval$ = setInterval(() => {
+      this.actualizarTimer();
+    }, 1000);
+  }
+
+  actualizarTimer() {
+    if (!this.atencion?.tiempoRealInicio) {
+      this.tiempoTranscurrido = '0 min';
+      return;
+    }
+
+    const inicio = new Date(this.atencion.tiempoRealInicio);
+    const ahora = new Date();
+    const diffMs = ahora.getTime() - inicio.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 60) {
+      this.tiempoTranscurrido = `${diffMins} min`;
+    } else {
+      const hours = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+      this.tiempoTranscurrido = `${hours}h ${mins}m`;
+    }
+  }
+
+  onServicioChange() {
+    const servicioId = Number(this.nuevoServicio.idServicio);
+    const servicio = this.serviciosDisponibles().find(s => s.idServicio === servicioId);
+
+    if (servicio) {
+      this.nuevoServicio.precioUnitario = servicio.precioBase || 0;
+      this.calcularSubtotal();
+    }
+  }
+
+  calcularSubtotal() {
+    this.nuevoServicio.subtotal =
+      this.nuevoServicio.cantidad * this.nuevoServicio.precioUnitario;
+  }
+
+  agregarServicio() {
+    if (!this.nuevoServicio.idServicio) {
+      this.notificationService.error('Selecciona un servicio');
+      return;
+    }
+
+    if (this.nuevoServicio.cantidad <= 0) {
+      this.notificationService.error('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    if (this.nuevoServicio.precioUnitario <= 0) {
+      this.notificationService.error('El precio debe ser mayor a 0');
+      return;
+    }
+
+    const detalleData = {
+      servicio: {
+        idServicio: Number(this.nuevoServicio.idServicio)
+      },
+      cantidad: this.nuevoServicio.cantidad,
+      precioUnitario: this.nuevoServicio.precioUnitario,
+      subtotal: this.nuevoServicio.subtotal,
+      observaciones: this.nuevoServicio.observaciones || ''
+    };
+
+    this.attentionService.addService(this.idAtencion, detalleData).subscribe({
+      next: () => {
+        this.notificationService.success('Servicio agregado correctamente');
+        this.cargarServiciosRealizados();
+        this.resetFormServicio();
+      },
+      error: (error) => {
+        console.error('Error agregando servicio', error);
+        this.notificationService.error('Error al agregar el servicio');
+      }
+    });
+  }
+
+  resetFormServicio() {
+    this.nuevoServicio = {
+      idServicio: '',
+      cantidad: 1,
+      precioUnitario: 0,
+      subtotal: 0,
+      observaciones: ''
+    };
+  }
+
+  eliminarServicio(idDetalle: number) {
+    if (confirm('¿Eliminar este servicio?')) {
+      // Aquí iría la llamada al endpoint DELETE
+      // Por ahora, solo quitamos del array
+      const servicios = this.serviciosRealizados().filter(s => s.idDetalle !== idDetalle);
+      this.serviciosRealizados.set(servicios);
+      this.notificationService.success('Servicio eliminado');
+    }
+  }
+
+  calcularTotalServicios(): number {
+    return this.serviciosRealizados().reduce((sum, s) => sum + (s.subtotal || 0), 0);
+  }
+
+  // 🆕 ETAPA B: BOTÓN INICIAR SERVICIO
+  iniciarServicio() {
+    if (!this.atencion) return;
+
+    this.isProcessing.set(true);
+    console.log('▶️ Iniciando servicio para atención:', this.idAtencion);
+
+    // Llamar a PUT para cambiar estado a en_servicio
+    this.attentionService.updateState(this.idAtencion, 'en_servicio').subscribe({
+      next: () => {
+        this.isProcessing.set(false);
+        this.servicioEnCurso.set(true);
+
+        // Actualizar la atención con el nuevo estado
+        if (this.atencion) {
+          this.atencion.estado = 'en_servicio';
+          this.atencion.tiempoRealInicio = new Date().toISOString();
+        }
+
+        this.notificationService.success('Servicio iniciado');
+        console.log('✅ Estado cambiado a en_servicio');
+      },
+      error: (error) => {
+        this.isProcessing.set(false);
+        console.error('Error iniciando servicio:', error);
+        this.notificationService.error('Error al iniciar el servicio');
+      }
+    });
+  }
+
+  terminarAtencion() {
+    // ⚠️ VALIDACIÓN CRÍTICA
+    if (this.serviciosRealizados().length === 0) {
+      this.notificationService.error(
+        'Debes agregar al menos un servicio antes de terminar la atención'
+      );
+      return;
+    }
+
+    const total = this.calcularTotalServicios();
+    // Asumiendo IGV del 18% para el ejemplo
+    const igv = total * 0.18;
+    const totalConIgv = total + igv;
+
+    const confirmMessage = `
+¿Terminar esta atención?
+
+Servicios: ${this.serviciosRealizados().length}
+Subtotal: S/ ${total.toFixed(2)}
+IGV (18%): S/ ${igv.toFixed(2)}
+Total: S/ ${totalConIgv.toFixed(2)}
+
+Después de terminar, se procederá a la facturación.
+    `;
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    this.isProcessing.set(true);
+
+    this.attentionService.finishAttention(this.idAtencion).subscribe({
+      next: () => {
+        this.notificationService.success('Atención terminada exitosamente');
+        this.isProcessing.set(false);
+
+        // Redirigir automáticamente a billing
+        this.notificationService.success('Atención terminada. Redirigiendo a facturación...');
+        setTimeout(() => {
+          this.router.navigate(['/billing'], {
+            queryParams: { idAtencion: this.idAtencion }
+          });
+        }, 1000);
+      },
+      error: (error) => {
+        console.error('Error terminando atención', error);
+        this.notificationService.error('Error al terminar la atención');
+        this.isProcessing.set(false);
+      }
+    });
+  }
+
+  volverACola() {
+    if (confirm('¿Seguro que deseas volver? Los cambios no guardados se perderán.')) {
+      this.router.navigate(['/atenciones']);
+    }
+  }
+
+  getClientInitials(): string {
+    const cliente = this.atencion?.cliente;
+    if (!cliente) return 'CL';
+
+    const nombre = cliente.nombre?.charAt(0) || '';
+    const apellido = cliente.apellido?.charAt(0) || '';
+    return (nombre + apellido).toUpperCase() || 'CL';
+  }
+
+  getGroomerInitials(): string {
+    const groomer = this.atencion?.groomer;
+    if (!groomer || !groomer.nombre) return 'GR';
+
+    const parts = groomer.nombre.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    }
+    return groomer.nombre.substring(0, 2).toUpperCase();
+  }
+
+  calculateAge(fechaNacimiento: string): number {
+    if (!fechaNacimiento) return 0;
+
+    const nacimiento = new Date(fechaNacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+
+    return edad;
+  }
+}

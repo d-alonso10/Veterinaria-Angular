@@ -1,38 +1,202 @@
 <div class="main-content">
-    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex;">
-        <h2>Listado de Clientes</h2>
-        <a routerLink="/clients/new" class="btn btn-primary">➕ Nuevo Cliente</a>
+  <div class="header-actions">
+    <div>
+      <h2>👥 Listado de Clientes</h2>
+      <p class="subtitle">Gestiona tu base de clientes</p>
+    </div>
+    <a routerLink="/clients/new" class="btn btn-primary">
+      ➕ Nuevo Cliente
+    </a>
+  </div>
+
+  <div class="card">
+    <!-- Search Bar -->
+    <div class="search-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, email o DNI..."
+          [(ngModel)]="searchTerm"
+          (input)="filterClients()"
+          class="search-input"
+        >
+      </div>
+      <div class="results-count">
+        <span class="count-badge">{{ filteredClientes.length }}</span>
+        {{ filteredClientes.length === 1 ? 'cliente encontrado' : 'clientes encontrados' }}
+      </div>
     </div>
 
-    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
-                    <th style="padding: 12px;">Nombre</th>
-                    <th style="padding: 12px;">DNI/RUC</th>
-                    <th style="padding: 12px;">Email</th>
-                    <th style="padding: 12px;">Teléfono</th>
-                    <th style="padding: 12px;">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (cliente of clientes; track cliente.idCliente) {
-                    <tr style="border-bottom: 1px solid #f0f0f0;">
-                        <td style="padding: 12px;">{{ cliente.nombre }} {{ cliente.apellido }}</td>
-                        <td style="padding: 12px;">{{ cliente.dniRuc }}</td>
-                        <td style="padding: 12px;">{{ cliente.email }}</td>
-                        <td style="padding: 12px;">{{ cliente.telefono }}</td>
-                        <td style="padding: 12px;">
-                            <a [routerLink]="['/clients', cliente.idCliente]" class="btn btn-info btn-small" style="margin-right: 5px;">Editar</a>
-                            <button (click)="deleteClient(cliente.idCliente!)" class="btn btn-danger btn-small" style="background-color: var(--danger-color); color: white;">Eliminar</button>
-                        </td>
-                    </tr>
-                } @empty {
-                    <tr>
-                        <td colspan="5" style="padding: 20px; text-align: center; color: var(--text-light);">No hay clientes registrados.</td>
-                    </tr>
+    <!-- Clients Table -->
+    <div class="table-container">
+      <table class="clients-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th>Contacto</th>
+            <th>DNI/RUC</th>
+            <th>Dirección</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cliente of filteredClientes; track cliente.idCliente; let i = $index) {
+            <tr class="client-row">
+              <td>
+                <div class="client-id">{{ cliente.idCliente }}</div>
+              </td>
+              <td>
+                <div class="client-info">
+                  <div class="client-avatar">
+                    {{ getInitials(cliente.nombre, cliente.apellido) }}
+                  </div>
+                  <div class="client-details">
+                    <span class="client-name">{{ cliente.nombre }} {{ cliente.apellido }}</span>
+                    @if (cliente.preferencias) {
+                      <span class="has-preferences">⭐ Con preferencias</span>
+                    }
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="contact-info">
+                  <span class="contact-item">📧 {{ cliente.email }}</span>
+                  <span class="contact-item">📱 {{ cliente.telefono }}</span>
+                </div>
+              </td>
+              <td>
+                @if (cliente.dniRuc) {
+                  <span class="dni-badge">{{ cliente.dniRuc }}</span>
+                } @else {
+                  <span class="no-data">Sin DNI</span>
                 }
-            </tbody>
-        </table>
+              </td>
+              <td>
+                <span class="address-text">{{ cliente.direccion }}</span>
+              </td>
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <button (click)="viewAppointments(cliente)"
+                          class="btn-action btn-appointments"
+                          title="Ver Próximas Citas">
+                    📅
+                  </button>
+                  <a [routerLink]="['/clients', cliente.idCliente]"
+                     class="btn-action btn-edit"
+                     title="Editar">
+                    ✏️
+                  </a>
+                  <button (click)="deleteClient(cliente.idCliente!)"
+                          class="btn-action btn-delete"
+                          title="Eliminar">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-state">
+                <div class="empty-content">
+                  <div class="empty-icon">👥</div>
+                  <p>No hay clientes registrados</p>
+                  <a routerLink="/clients/new" class="btn btn-primary-small">Agregar primer cliente</a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
+
+    <!-- Pagination Info -->
+    @if (filteredClientes.length > 0) {
+      <div class="table-footer">
+        <span class="footer-text">
+          Mostrando {{ filteredClientes.length }} de {{ clientes.length }} clientes
+        </span>
+      </div>
+    }
+  </div>
 </div>
+
+<!-- Appointments Modal -->
+@if (showAppointmentsModal) {
+  <div class="modal-overlay" (click)="closeAppointmentsModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📅 Próximas Citas - {{ selectedClientName }}</h3>
+        <button class="modal-close" (click)="closeAppointmentsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        @if (loadingAppointments) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando citas...</p>
+          </div>
+        } @else if (selectedClientAppointments.length > 0) {
+          <div class="appointments-list">
+            @for (cita of selectedClientAppointments; track cita.id_cita) {
+              <div class="appointment-card">
+                <!-- Header -->
+                <div class="appointment-header">
+                  <div class="appointment-info">
+                    <div class="appointment-icon">📅</div>
+                    <div>
+                      <h4 class="appointment-service">{{ cita.servicio }}</h4>
+                      <span class="appointment-id">#{{ cita.id_cita }}</span>
+                    </div>
+                  </div>
+                  <span [class]="'status-badge ' + getEstadoBadgeClass(cita.estado)">
+                    {{ cita.estado }}
+                  </span>
+                </div>
+
+                <!-- Details -->
+                <div class="appointment-details">
+                  <div class="detail-item">
+                    <span class="detail-icon">🐾</span>
+                    <div class="detail-content">
+                      <span class="detail-label">Mascota</span>
+                      <span class="detail-value">{{ cita.mascota }}</span>
+                    </div>
+                  </div>
+
+                  <div class="detail-item">
+                    <span class="detail-icon">📅</span>
+                    <div class="detail-content">
+                      <span class="detail-label">Fecha y Hora</span>
+                      <span class="detail-value">{{ cita.fecha_programada | date:'dd/MM/yyyy h:mm a' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="detail-item">
+                    <span class="detail-icon">📍</span>
+                    <div class="detail-content">
+                      <span class="detail-label">Modalidad</span>
+                      <span class="detail-value">
+                        @if (cita.modalidad === 'presencial') {
+                          🏠 Presencial
+                        } @else {
+                          💻 Virtual
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-appointments">
+            <div class="empty-icon">📅</div>
+            <p>No hay citas próximas</p>
+            <small>Las citas aparecerán aquí una vez que se agenden</small>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,62 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px;">
+        <h2>{{isEditMode ? 'Editar Servicio' : 'Nuevo Servicio' }}</h2>
+    </div>
+
+    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
+        <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()">
+
+            <!-- Nombre - Full width -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="nombre" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Nombre del Servicio *</label>
+                <input type="text" id="nombre" formControlName="nombre" class="form-control" placeholder="Ej: Baño Medicado" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                @if (serviceForm.get('nombre')?.invalid && (serviceForm.get('nombre')?.dirty || serviceForm.get('nombre')?.touched)) {
+                    <div class="error-message" style="color: #e74c3c; font-size: 14px; margin-top: 4px;">El nombre es requerido</div>
+                }
+            </div>
+
+            <!-- Descripción - Full width -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="descripcion" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Descripción</label>
+                <textarea id="descripcion" formControlName="descripcion" class="form-control" rows="3" placeholder="Describe el servicio..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; resize: vertical;"></textarea>
+            </div>
+
+            <!-- Grid 2 columnas: Categoría + Duración -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label for="categoria" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Categoría *</label>
+                    <select id="categoria" formControlName="categoria" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        @for (cat of categories; track cat.value) {
+                            <option [value]="cat.value">{{ cat.label }}</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="duracionEstimadaMin" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">⏱️ Duración (minutos) *</label>
+                    <input type="number" id="duracionEstimadaMin" formControlName="duracionEstimadaMin" class="form-control" placeholder="Ej: 60" min="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    @if (serviceForm.get('duracionEstimadaMin')?.invalid && (serviceForm.get('duracionEstimadaMin')?.dirty || serviceForm.get('duracionEstimadaMin')?.touched)) {
+                        <div class="error-message" style="color: #e74c3c; font-size: 14px; margin-top: 4px;">La duración debe ser mayor a 0</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Precio -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="precioBase" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">💰 Precio Base (S/) *</label>
+                <input type="number" id="precioBase" formControlName="precioBase" class="form-control" step="0.01" placeholder="Ej: 50.00" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                @if (serviceForm.get('precioBase')?.invalid && (serviceForm.get('precioBase')?.dirty || serviceForm.get('precioBase')?.touched)) {
+                    <div class="error-message" style="color: #e74c3c; font-size: 14px; margin-top: 4px;">El precio debe ser mayor o igual a 0</div>
+                }
+            </div>
+
+            <!-- Botones -->
+            <div class="form-actions" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 15px;">
+                <button type="button" routerLink="/services" class="btn btn-secondary" style="background-color: #95a5a6; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" [disabled]="serviceForm.invalid || isLoading" style="background-color: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    {{ isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear Servicio') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

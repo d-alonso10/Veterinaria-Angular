@@ -1,40 +1,271 @@
 <div class="main-content">
-    <div class="header-actions" style="margin-bottom: 20px;">
-        <h2>Registrar Pago</h2>
-    </div>
+  <!-- Indicador de Progreso -->
+  <div class="progress-breadcrumb">
+    <span class="step completed">✓ Cita</span>
+    <span class="separator">→</span>
+    <span class="step completed">✓ Atención</span>
+    <span class="separator">→</span>
+    <span class="step completed">✓ Factura</span>
+    <span class="separator">→</span>
+    <span class="step active">💳 Pago (4/4)</span>
+  </div>
 
-    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;">
-        <div style="margin-bottom: 20px; padding: 15px; background-color: #e8f5e9; border-radius: 8px; color: #2e7d32;">
-            <p><strong>Factura #{{ invoiceId }}</strong></p>
-            <p>Ingrese el monto a pagar para cancelar la deuda.</p>
+  <div class="header-section">
+    <div class="header-left">
+      <button (click)="volver()" class="btn-back">
+        ← Volver a Atenciones
+      </button>
+      <div class="header-info">
+        <h2>💳 Registrar Pago</h2>
+        <p class="subtitle">Completa la transacción y genera el comprobante</p>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando factura...</p>
+    </div>
+  } @else if (factura()) {
+    <div class="payment-content">
+      <!-- Columna Izquierda: Información de la Factura -->
+      <div class="left-column">
+        <!-- Card Factura -->
+        <div class="invoice-card">
+          <div class="invoice-header">
+            <div class="invoice-icon">📄</div>
+            <div class="invoice-title">
+              <h3>Factura</h3>
+              <p>{{ factura()!.serie }}-{{ factura()!.numero }}</p>
+            </div>
+            <span class="invoice-status" [class.paid]="factura()!.estado === 'pagada'">
+              {{ factura()!.estado === 'pagada' ? '✓ Pagada' : '⏳ Pendiente' }}
+            </span>
+          </div>
+          <div class="invoice-body">
+            <div class="detail-section">
+              <h4>👤 Cliente</h4>
+              <div class="detail-row">
+                <span class="detail-label">Nombre:</span>
+                <span class="detail-value">
+                  {{ factura()!.cliente?.nombre }} {{ factura()!.cliente?.apellido }}
+                </span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">DNI/RUC:</span>
+                <span class="detail-value">{{ factura()!.cliente?.dniRuc }}</span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="detail-section">
+              <h4>🐾 Mascota</h4>
+              <div class="detail-row">
+                <span class="detail-label">Nombre:</span>
+                <span class="detail-value">{{ factura()!.atencion?.mascota?.nombre }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Especie:</span>
+                <span class="species-badge" [class]="'species-' + factura()!.atencion?.mascota?.especie">
+                  {{ factura()!.atencion?.mascota?.especie }}
+                </span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="totals-section">
+              <div class="total-row">
+                <span>Subtotal:</span>
+                <span>S/ {{ (factura()!.subtotal || 0).toFixed(2) }}</span>
+              </div>
+              <div class="total-row">
+                <span>IGV (18%):</span>
+                <span>S/ {{ (factura()!.impuesto || 0).toFixed(2) }}</span>
+              </div>
+              <div class="total-row grand">
+                <span>TOTAL:</span>
+                <span>S/ {{ (factura()!.total || 0).toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()">
-            <div class="form-group">
-                <label>Monto</label>
-                <input type="number" formControlName="monto" class="form-control" placeholder="0.00">
+        <!-- Info Método de Pago -->
+        <div class="info-box">
+          <div class="info-icon">ℹ️</div>
+          <div class="info-content">
+            <h5>Método Sugerido</h5>
+            <p>El método sugerido al generar la factura fue:</p>
+            <div class="suggested-method">
+              {{ factura()!.metodoPagoSugerido || 'efectivo' }}
             </div>
+            <p class="info-note">Puedes cambiarlo según el cliente</p>
+          </div>
+        </div>
+      </div>
 
-            <div class="form-group">
-                <label>Método de Pago</label>
-                <select formControlName="metodo" class="form-control">
-                    <option value="efectivo">Efectivo</option>
-                    <option value="tarjeta">Tarjeta</option>
-                    <option value="transfer">Transferencia</option>
-                    <option value="yape">Yape/Plin</option>
-                </select>
-            </div>
+      <!-- Columna Derecha: Formulario de Pago -->
+      <div class="right-column">
+        <div class="payment-card">
+          <div class="card-header">
+            <span class="card-icon">💰</span>
+            <h3>Detalles del Pago</h3>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()">
+              <!-- Total a Pagar (destacado) -->
+              <div class="amount-display">
+                <div class="amount-label">Total a Pagar</div>
+                <div class="amount-value">S/ {{ (factura()!.total || 0).toFixed(2) }}</div>
+              </div>
 
-            <div class="form-group">
-                <label>Referencia (Opcional)</label>
-                <input type="text" formControlName="referencia" class="form-control" placeholder="Nro Operación / Voucher">
-            </div>
+              <!-- Método de Pago -->
+              <div class="form-group">
+                <label class="form-label">
+                  <span class="label-icon">💳</span>
+                  Método de Pago *
+                </label>
+                <div class="payment-methods">
+                  <label class="method-option" [class.selected]="paymentForm.get('metodo')?.value === 'efectivo'">
+                    <input type="radio" formControlName="metodo" value="efectivo">
+                    <div class="method-content">
+                      <span class="method-icon">💵</span>
+                      <span class="method-name">Efectivo</span>
+                    </div>
+                  </label>
+                  <label class="method-option" [class.selected]="paymentForm.get('metodo')?.value === 'tarjeta'">
+                    <input type="radio" formControlName="metodo" value="tarjeta">
+                    <div class="method-content">
+                      <span class="method-icon">💳</span>
+                      <span class="method-name">Tarjeta</span>
+                    </div>
+                  </label>
+                  <label class="method-option" [class.selected]="paymentForm.get('metodo')?.value === 'yape'">
+                    <input type="radio" formControlName="metodo" value="yape">
+                    <div class="method-content">
+                      <span class="method-icon">📱</span>
+                      <span class="method-name">Yape</span>
+                    </div>
+                  </label>
+                  <label class="method-option" [class.selected]="paymentForm.get('metodo')?.value === 'plin'">
+                    <input type="radio" formControlName="metodo" value="plin">
+                    <div class="method-content">
+                      <span class="method-icon">📱</span>
+                      <span class="method-name">Plin</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary" [disabled]="paymentForm.invalid || isLoading">
-                    {{ isLoading ? 'Procesando...' : 'Registrar Pago' }}
+              <!-- Calculadora de Cambio (solo efectivo) -->
+              @if (paymentForm.get('metodo')?.value === 'efectivo') {
+                <div class="calculator-section">
+                  <h4>🧮 Calculadora de Cambio</h4>
+
+                  <div class="form-group">
+                    <label class="form-label">Monto Recibido</label>
+                    <div class="input-with-button">
+                      <input
+                        type="number"
+                        [(ngModel)]="montoRecibido"
+                        [ngModelOptions]="{standalone: true}"
+                        (ngModelChange)="onMontoRecibidoChange()"
+                        class="form-input"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                      >
+                      <button
+                        type="button"
+                        class="btn-exact"
+                        (click)="setMontoExacto()"
+                      >
+                        Monto Exacto
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="change-display" [class.negative]="cambio < 0">
+                    <div class="change-label">
+                      {{ cambio < 0 ? 'Falta' : 'Cambio a entregar' }}
+                    </div>
+                    <div class="change-value">
+                      S/ {{ Math.abs(cambio).toFixed(2) }}
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Referencia (opcional) -->
+              <div class="form-group">
+                <label class="form-label">
+                  <span class="label-icon">#️⃣</span>
+                  Número de Referencia (Opcional)
+                </label>
+                <input
+                  type="text"
+                  formControlName="referencia"
+                  class="form-input"
+                  placeholder="Número de operación, comprobante, etc."
+                >
+                <div class="form-hint">
+                  Para pagos digitales o con tarjeta, ingresa el número de operación
+                </div>
+              </div>
+
+              <!-- Botones de Acción -->
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="volver()"
+                >
+                  ✕ Cancelar
                 </button>
-            </div>
-        </form>
+                <button
+                  type="submit"
+                  class="btn btn-confirm-payment"
+                  [disabled]="paymentForm.invalid || isProcessing() || (paymentForm.get('metodo')?.value === 'efectivo' && cambio < 0)"
+                  [class.loading]="isProcessing()"
+                >
+                  @if (isProcessing()) {
+                    <span class="btn-spinner"></span>
+                    Procesando...
+                  } @else {
+                    ✅ Confirmar Pago
+                  }
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Success Info -->
+        <div class="success-info">
+          <div class="success-icon">🎉</div>
+          <div class="success-content">
+            <h5>Después del Pago</h5>
+            <p>El sistema:</p>
+            <ul>
+              <li>Marcará la factura como "Pagada"</li>
+              <li>Generará el comprobante de pago</li>
+              <li>Actualizará el registro contable</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
+  } @else {
+    <div class="empty-state">
+      <div class="empty-icon">📄</div>
+      <h3>No se encontró la factura</h3>
+      <p>No hay información disponible para registrar el pago</p>
+      <button (click)="volver()" class="btn btn-primary">
+        Volver a Atenciones
+      </button>
+    </div>
+  }
 </div>

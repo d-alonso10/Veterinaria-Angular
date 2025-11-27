@@ -43,18 +43,59 @@ export class ApiService {
       .pipe(catchError(this.handleError));
   }
 
-  post<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
+  post<T>(endpoint: string, body: any, params?: any): Observable<ApiResponse<T>> {
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach((key) => {
+        if (params[key] !== null && params[key] !== undefined) {
+          httpParams = httpParams.set(key, params[key]);
+        }
+      });
+    }
+
     return this.http
       .post<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, body, {
         headers: this.getHeaders(),
+        params: httpParams,
       })
       .pipe(catchError(this.handleError));
   }
 
-  put<T>(endpoint: string, body: any = {}): Observable<ApiResponse<T>> {
+  put<T>(endpoint: string, body: any = {}, params?: any): Observable<ApiResponse<T>> {
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach((key) => {
+        if (params[key] !== null && params[key] !== undefined) {
+          httpParams = httpParams.set(key, params[key]);
+        }
+      });
+    }
+
     return this.http
       .put<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, body, {
         headers: this.getHeaders(),
+        params: httpParams,
+      })
+      .pipe(catchError(this.handleError));
+  }
+
+  postFormUrlEncoded<T>(endpoint: string, params: any): Observable<ApiResponse<T>> {
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach((key) => {
+        if (params[key] !== null && params[key] !== undefined) {
+          httpParams = httpParams.set(key, params[key]);
+        }
+      });
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+
+    return this.http
+      .post<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, httpParams.toString(), {
+        headers: headers,
       })
       .pipe(catchError(this.handleError));
   }

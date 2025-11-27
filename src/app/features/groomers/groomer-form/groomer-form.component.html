@@ -1,0 +1,225 @@
+<div class="main-content">
+  <div class="header-section">
+    <div class="breadcrumb">
+      <a routerLink="/groomers" class="breadcrumb-link">👨‍💼 Groomers</a>
+      <span class="breadcrumb-separator">/</span>
+      <span class="breadcrumb-current">{{ isEditMode ? 'Editar' : 'Nuevo' }}</span>
+    </div>
+    <h2 class="page-title">{{ isEditMode ? '✏️ Editar Groomer' : '➕ Nuevo Groomer' }}</h2>
+    <p class="page-subtitle">{{ isEditMode ? 'Actualiza la información del groomer' : 'Registra un nuevo groomer en el sistema' }}</p>
+  </div>
+
+  <div class="form-card">
+    <form [formGroup]="groomerForm" (ngSubmit)="onSubmit()">
+
+      <!-- Información Básica -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">👤</div>
+          <div>
+            <h3 class="section-title">Información Personal</h3>
+            <p class="section-description">Datos básicos del groomer</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nombre" class="form-label">
+            <span class="label-text">Nombre Completo</span>
+            <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="nombre"
+            formControlName="nombre"
+            class="form-input"
+            [class.error]="groomerForm.get('nombre')?.invalid && (groomerForm.get('nombre')?.dirty || groomerForm.get('nombre')?.touched)"
+            placeholder="Ej: María González Pérez"
+          >
+          @if (groomerForm.get('nombre')?.invalid && (groomerForm.get('nombre')?.dirty || groomerForm.get('nombre')?.touched)) {
+            <div class="error-message">
+              <span class="error-icon">⚠️</span>
+              El nombre es requerido
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Especialidades -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">✂️</div>
+          <div>
+            <h3 class="section-title">Especialidades</h3>
+            <p class="section-description">Selecciona los servicios en los que está especializado</p>
+          </div>
+        </div>
+
+        <div class="specialties-grid">
+          <!-- Principales -->
+          <div class="specialty-category">
+            <h4 class="category-title">Principales</h4>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="mainSpecialties.includes('corte')"
+                  (change)="toggleMainSpecialty('corte')"
+                >
+                <span class="checkbox-text">Corte</span>
+              </label>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="mainSpecialties.includes('baño')"
+                  (change)="toggleMainSpecialty('baño')"
+                >
+                <span class="checkbox-text">Baño</span>
+              </label>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="mainSpecialties.includes('estetica')"
+                  (change)="toggleMainSpecialty('estetica')"
+                >
+                <span class="checkbox-text">Estética</span>
+              </label>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="mainSpecialties.includes('spa')"
+                  (change)="toggleMainSpecialty('spa')"
+                >
+                <span class="checkbox-text">Spa</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Adicionales -->
+          <div class="specialty-category">
+            <h4 class="category-title">Adicionales</h4>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="additionalSpecialties.includes('deslanado')"
+                  (change)="toggleAdditionalSpecialty('deslanado')"
+                >
+                <span class="checkbox-text">Deslanado</span>
+              </label>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="additionalSpecialties.includes('limpieza_dental')"
+                  (change)="toggleAdditionalSpecialty('limpieza_dental')"
+                >
+                <span class="checkbox-text">Limpieza dental</span>
+              </label>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="additionalSpecialties.includes('corte_uñas')"
+                  (change)="toggleAdditionalSpecialty('corte_uñas')"
+                >
+                <span class="checkbox-text">Corte de uñas</span>
+              </label>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="additionalSpecialties.includes('tinte')"
+                  (change)="toggleAdditionalSpecialty('tinte')"
+                >
+                <span class="checkbox-text">Tinte</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        @if (mainSpecialties.length === 0 && additionalSpecialties.length === 0) {
+          <div class="info-message">
+            <span class="info-icon">ℹ️</span>
+            <span>Debe seleccionar al menos una especialidad</span>
+          </div>
+        }
+      </div>
+
+      <!-- Disponibilidad -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">📅</div>
+          <div>
+            <h3 class="section-title">Disponibilidad</h3>
+            <p class="section-description">Configura los horarios de trabajo</p>
+          </div>
+        </div>
+
+        <button type="button" (click)="setDefaultSchedule()" class="btn-quick-fill">
+          ⚡ Rellenar Lunes-Viernes (08:00 - 17:00)
+        </button>
+
+        <div class="schedule-grid">
+          @for (day of weekDays; track day.key) {
+            <div class="day-schedule">
+              <label class="day-checkbox">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="day.enabled"
+                  [ngModelOptions]="{standalone: true}"
+                >
+                <span class="day-name">{{ day.label }}</span>
+              </label>
+
+              @if (day.enabled) {
+                <div class="time-inputs">
+                  <div class="time-group">
+                    <span class="time-label">Inicio</span>
+                    <input
+                      type="time"
+                      [(ngModel)]="day.inicio"
+                      [ngModelOptions]="{standalone: true}"
+                      class="time-input"
+                    >
+                  </div>
+                  <span class="time-separator">→</span>
+                  <div class="time-group">
+                    <span class="time-label">Fin</span>
+                    <input
+                      type="time"
+                      [(ngModel)]="day.fin"
+                      [ngModelOptions]="{standalone: true}"
+                      class="time-input"
+                    >
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (!hasAnyDayEnabled()) {
+          <div class="info-message">
+            <span class="info-icon">ℹ️</span>
+            <span>Debe configurar al menos un día de disponibilidad</span>
+          </div>
+        }
+      </div>
+
+      <!-- Botones -->
+      <div class="form-actions">
+        <button type="button" (click)="router.navigate(['/groomers'])" class="btn btn-secondary">
+          ✕ Cancelar
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="!isFormValid() || isLoading"
+          [class.loading]="isLoading"
+        >
+          @if (isLoading) {
+            <span class="btn-spinner"></span>
+          }
+          {{ isLoading ? 'Guardando...' : (isEditMode ? '💾 Actualizar Groomer' : '➕ Crear Groomer') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

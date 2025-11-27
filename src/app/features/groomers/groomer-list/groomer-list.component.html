@@ -1,0 +1,137 @@
+<div class="main-content">
+  <div class="header-actions">
+    <div>
+      <h2>👨‍💼 Gestión de Groomers</h2>
+      <p class="subtitle">Administra el personal de atención</p>
+    </div>
+    <a routerLink="/groomers/new" class="btn btn-primary">
+      ➕ Nuevo Groomer
+    </a>
+  </div>
+
+  <div class="card">
+    <!-- Search Bar -->
+    <div class="search-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar por nombre o especialidad..."
+          [(ngModel)]="searchTerm"
+          (input)="filterGroomers()"
+          class="search-input"
+        >
+      </div>
+      <div class="results-count">
+        <span class="count-badge">{{ filteredGroomers.length }}</span>
+        {{ filteredGroomers.length === 1 ? 'groomer encontrado' : 'groomers encontrados' }}
+      </div>
+    </div>
+
+    <!-- Groomers Table -->
+    <div class="table-container">
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando groomers...</p>
+        </div>
+      } @else {
+        <table class="groomers-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Groomer</th>
+              <th>Especialidades</th>
+              <th>Disponibilidad</th>
+              <th>Registrado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (groomer of filteredGroomers; track groomer.idGroomer) {
+              <tr class="groomer-row">
+                <td>
+                  <div class="groomer-id">{{ groomer.idGroomer }}</div>
+                </td>
+                <td>
+                  <div class="groomer-info">
+                    <div class="groomer-avatar">
+                      {{ getInitials(groomer.nombre!) }}
+                    </div>
+                    <div class="groomer-details">
+                      <span class="groomer-name">{{ groomer.nombre }}</span>
+                      <span class="groomer-status">✓ Activo</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="specialties-container">
+                    @for (specialty of getSpecialtiesArray(groomer.especialidades); track specialty) {
+                      <span class="specialty-badge">
+                        {{ specialty }}
+                      </span>
+                    }
+                    @empty {
+                      <span class="no-data">Sin especialidades</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="availability-container">
+                    @for (day of getAvailabilityArray(groomer.disponibilidad); track day) {
+                      <span class="day-badge">
+                        {{ day }}
+                      </span>
+                    }
+                    @empty {
+                      <span class="no-data">No especificado</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="date-info">
+                    <span class="date-text">📅 {{ groomer.createdAt | date:'dd/MM/yyyy' }}</span>
+                    <span class="time-text">🕒 {{ groomer.createdAt | date:'h:mm a' }}</span>
+                  </div>
+                </td>
+                <td class="actions-cell">
+                  <div class="action-buttons">
+                    <a [routerLink]="['/groomers', groomer.idGroomer]"
+                       class="btn-action btn-edit"
+                       title="Editar">
+                      ✏️
+                    </a>
+                    <button (click)="deleteGroomer(groomer.idGroomer!)"
+                            class="btn-action btn-delete"
+                            title="Eliminar">
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-state">
+                  <div class="empty-content">
+                    <div class="empty-icon">👨‍💼</div>
+                    <p>No hay groomers registrados</p>
+                    <a routerLink="/groomers/new" class="btn btn-primary-small">Agregar primer groomer</a>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Pagination Info -->
+    @if (filteredGroomers.length > 0 && !isLoading) {
+      <div class="table-footer">
+        <span class="footer-text">
+          Mostrando {{ filteredGroomers.length }} de {{ groomers.length }} groomers
+        </span>
+      </div>
+    }
+  </div>
+</div>

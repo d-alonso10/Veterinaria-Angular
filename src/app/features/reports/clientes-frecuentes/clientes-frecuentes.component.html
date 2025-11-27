@@ -1,0 +1,134 @@
+<div class="main-content">
+    <div class="header-section">
+        <div>
+            <h2>🏆 Clientes Frecuentes</h2>
+            <p class="subtitle">Top 10 clientes con más atenciones</p>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        @if (isLoading) {
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Cargando clientes...</p>
+            </div>
+        } @else if (clientes.length > 0) {
+            <!-- Stats Summary -->
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ clientes.length }}</span>
+                        <span class="stat-label">Clientes Top</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🐾</div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ getTotalMascotas() }}</span>
+                        <span class="stat-label">Total Mascotas</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✂️</div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ getTotalAtenciones() }}</span>
+                        <span class="stat-label">Atenciones</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <span class="stat-value">S/ {{ getTotalGastado() | number:'1.2-2' }}</span>
+                        <span class="stat-label">Total Facturado</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Cards Grid -->
+            <div class="clients-grid">
+                @for (cliente of clientes; track cliente.id_cliente; let i = $index) {
+                    <div class="client-card" [class.top-client]="i < 3">
+                        <!-- Ranking Badge -->
+                        <div class="ranking-badge" [class]="'rank-' + (i + 1)">
+                            @if (i === 0) {
+                                🥇
+                            } @else if (i === 1) {
+                                🥈
+                            } @else if (i === 2) {
+                                🥉
+                            } @else {
+                                #{{ i + 1 }}
+                            }
+                        </div>
+
+                        <!-- Client Info -->
+                        <div class="client-header">
+                            <div class="client-avatar">
+                                {{ getInitials(cliente.nombre, cliente.apellido) }}
+                            </div>
+                            <div class="client-details">
+                                <h3 class="client-name">{{ cliente.nombre }} {{ cliente.apellido }}</h3>
+                                <div class="contact-info">
+                                    <span class="contact-item">
+                                        📧 {{ cliente.email }}
+                                    </span>
+                                    <span class="contact-item">
+                                        📱 {{ cliente.telefono }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Client Stats -->
+                        <div class="client-stats">
+                            <div class="stat-item">
+                                <span class="stat-icon-small">🐾</span>
+                                <div class="stat-content">
+                                    <span class="stat-number">{{ cliente.total_mascotas }}</span>
+                                    <span class="stat-text">Mascotas</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon-small">✂️</span>
+                                <div class="stat-content">
+                                    <span class="stat-number">{{ cliente.total_atenciones }}</span>
+                                    <span class="stat-text">Atenciones</span>
+                                </div>
+                            </div>
+                            <div class="stat-item highlight">
+                                <span class="stat-icon-small">💵</span>
+                                <div class="stat-content">
+                                    <span class="stat-number">
+                                        @if (cliente.total_gastado) {
+                                            S/ {{ cliente.total_gastado | number:'1.2-2' }}
+                                        } @else {
+                                            S/ 0.00
+                                        }
+                                    </span>
+                                    <span class="stat-text">Gastado</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar for Atenciones -->
+                        <div class="progress-section">
+                            <div class="progress-bar">
+                                <div class="progress-fill"
+                                     [style.width.%]="getProgressPercentage(cliente.total_atenciones)">
+                                </div>
+                            </div>
+                            <span class="progress-label">Nivel de frecuencia</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        } @else {
+            <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <p>No hay datos de clientes disponibles</p>
+                <small>Los clientes aparecerán aquí una vez que realicen atenciones</small>
+            </div>
+        }
+    </div>
+</div>

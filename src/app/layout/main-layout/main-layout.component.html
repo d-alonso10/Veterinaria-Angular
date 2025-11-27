@@ -8,14 +8,13 @@
     <div class="user-info">
       <div class="user-avatar">U</div>
       <div class="user-details">
-      <div class="user-details">
         <h3>{{ user()?.username || 'Usuario' }}</h3>
         <p>{{ user()?.rol || 'Invitado' }}</p>
-      </div>
       </div>
     </div>
 
     <ul class="menu">
+      <!-- PRINCIPAL -->
       <div class="menu-section">Principal</div>
       <li class="menu-item" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <a routerLink="/dashboard">
@@ -24,7 +23,8 @@
         </a>
       </li>
 
-      <div class="menu-section">Gestionar</div>
+      <!-- GESTIÓN -->
+      <div class="menu-section">Gestión</div>
       <li class="menu-item" routerLinkActive="active">
         <a routerLink="/clients">
           <span class="menu-icon">👥</span>
@@ -44,12 +44,36 @@
         </a>
       </li>
       <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/services">
+          <span class="menu-icon">⚙️</span>
+          <span>Servicios</span>
+        </a>
+      </li>
+      <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/groomers">
+          <span class="menu-icon">👨‍🔧</span>
+          <span>Groomers</span>
+        </a>
+      </li>
+
+      <!-- OPERACIONES -->
+      <div class="menu-section">Operaciones</div>
+      <li class="menu-item" routerLinkActive="active">
         <a routerLink="/queue">
           <span class="menu-icon">📋</span>
           <span>Cola de Atención</span>
         </a>
       </li>
+      <li class="menu-item" routerLinkActive="active">
+        <a routerLink="/reception">
+          <span class="menu-icon">🎫</span>
+          <span>Recepción</span>
+        </a>
+      </li>
+
+      <!-- FINANZAS (Admin, Recepcionista, Contador) -->
       @if (user()?.rol === 'admin' || user()?.rol === 'recepcionista' || user()?.rol === 'contador') {
+        <div class="menu-section">Finanzas</div>
         <li class="menu-item" routerLinkActive="active">
           <a routerLink="/payments">
             <span class="menu-icon">💳</span>
@@ -57,14 +81,52 @@
           </a>
         </li>
       }
+
+      <!-- REPORTES (Admin) -->
       @if (user()?.rol === 'admin') {
+        <div class="menu-section">Reportes</div>
+        <li class="menu-item" routerLinkActive="active">
+          <a routerLink="/reports/income">
+            <span class="menu-icon">💰</span>
+            <span>Ingresos</span>
+          </a>
+        </li>
+        <li class="menu-item" routerLinkActive="active">
+          <a routerLink="/reports/frequent-clients">
+            <span class="menu-icon">⭐</span>
+            <span>Clientes Frecuentes</span>
+          </a>
+        </li>
         <li class="menu-item" routerLinkActive="active">
           <a routerLink="/reports/average-times">
             <span class="menu-icon">⏱️</span>
             <span>Tiempos Promedio</span>
           </a>
         </li>
+
+        <!-- ADMINISTRACIÓN (Admin Only) -->
+        <div class="menu-section">Administración</div>
+        <li class="menu-item" routerLinkActive="active">
+          <a routerLink="/admin/users">
+            <span class="menu-icon">👤</span>
+            <span>Usuarios</span>
+          </a>
+        </li>
+        <li class="menu-item" routerLinkActive="active">
+          <a routerLink="/admin/branches">
+            <span class="menu-icon">🏢</span>
+            <span>Sucursales</span>
+          </a>
+        </li>
       }
+
+      <!-- LOGOUT -->
+      <li class="menu-item" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+        <a (click)="logout()" style="cursor: pointer;">
+          <span class="menu-icon">🚪</span>
+          <span>Cerrar Sesión</span>
+        </a>
+      </li>
     </ul>
   </div>
 
@@ -80,8 +142,8 @@
           </p>
         </div>
         <div class="header-actions">
-          <a href="#" class="btn btn-success">➕ Nueva Cita</a>
-          <a href="#" class="btn btn-primary">👤 Agregar Cliente</a>
+          <a routerLink="/appointments/new" class="btn btn-success">➕ Nueva Cita</a>
+          <a routerLink="/clients/new" class="btn btn-primary">👤 Agregar Cliente</a>
         </div>
       </div>
     </div>

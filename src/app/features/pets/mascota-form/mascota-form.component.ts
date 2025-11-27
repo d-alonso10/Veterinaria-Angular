@@ -54,7 +54,7 @@ export class MascotaFormComponent implements OnInit {
       next: (data) => {
         this.clientes = data;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading clients', error);
         this.notificationService.error('Error al cargar clientes');
       }

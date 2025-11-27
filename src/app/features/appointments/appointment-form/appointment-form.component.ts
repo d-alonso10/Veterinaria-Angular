@@ -107,7 +107,7 @@ export class AppointmentFormComponent implements OnInit {
           this.notificationService.success('Cita programada correctamente');
           this.router.navigate(['/appointments']);
         },
-        error: (err) => {
+        error: (err: any) => {
           this.isLoading = false;
           console.error('Error creating appointment', err);
           this.notificationService.error('Error al programar cita');

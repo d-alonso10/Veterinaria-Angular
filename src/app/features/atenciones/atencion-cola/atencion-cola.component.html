@@ -1,32 +1,194 @@
 <div class="main-content">
-    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex; align-items: center;">
-        <h2>📋 Cola de Atención</h2>
-        <div class="last-updated" style="font-size: 0.9em; color: var(--text-light);">
-            Actualizado: {{ lastUpdated | date:'mediumTime' }}
+  <div class="header-section">
+    <div class="header-left">
+      <h2>📋 Cola de Atención</h2>
+      <p class="subtitle">Gestiona las atenciones en tiempo real</p>
+    </div>
+    <div class="header-right">
+      <div class="last-updated">
+        <span class="update-icon">🔄</span>
+        <span>Actualizado: {{ lastUpdated | date:'shortTime' }}</span>
+      </div>
+      <a routerLink="/atenciones/nueva" class="btn btn-primary">
+        ➕ Nueva Atención
+      </a>
+    </div>
+  </div>
+
+  <!-- Kanban Board -->
+  <div class="kanban-board">
+    <!-- Columna: En Espera -->
+    <div class="kanban-column">
+      <div class="column-header waiting">
+        <div class="column-title">
+          <span class="column-icon">⏳</span>
+          <span>En Espera</span>
         </div>
+        <span class="column-count">{{ getAtencionesByEstado('en_espera').length }}</span>
+      </div>
+      <div class="column-content">
+        @for (atencion of getAtencionesByEstado('en_espera'); track atencion.idAtencion) {
+          <div class="atencion-card waiting-card" [routerLink]="['/atenciones', atencion.idAtencion]">
+            <div class="card-header-row">
+              <span class="turno-badge">Turno #{{ atencion.turnoNum || atencion.idAtencion }}</span>
+              <span class="priority-badge" [class.high]="atencion.prioridad === 1">
+                P{{ atencion.prioridad || 2 }}
+              </span>
+            </div>
+
+            <div class="pet-info">
+              <div class="pet-avatar">
+                {{ getPetInitial(atencion.mascota?.nombre || 'M') }}
+              </div>
+              <div class="pet-details">
+                <h4>{{ atencion.mascota?.nombre || 'Sin nombre' }}</h4>
+                <p>{{ atencion.mascota?.raza || 'Raza no especificada' }}</p>
+              </div>
+            </div>
+
+            <div class="client-row">
+              <span class="client-icon">👤</span>
+              <span>{{ atencion.cliente?.nombre || 'Cliente' }} {{ atencion.cliente?.apellido || '' }}</span>
+            </div>
+
+            <div class="groomer-row">
+              <span class="groomer-icon">👨‍💼</span>
+              <span>{{ atencion.groomer?.nombre || 'Sin asignar' }}</span>
+            </div>
+
+            <div class="time-row">
+              <span class="time-icon">🕒</span>
+              <span>{{ atencion.tiempoEstimadoInicio | date:'shortTime' }}</span>
+            </div>
+
+            <div class="card-actions">
+              <button class="btn-action btn-start" (click)="iniciarServicio($event, atencion.idAtencion!)" title="Iniciar">
+                ▶️ Iniciar
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-column">
+            <div class="empty-icon">⏱️</div>
+            <p>No hay atenciones en espera</p>
+          </div>
+        }
+      </div>
     </div>
 
-    <div class="cola-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-        @for (atencion of cola(); track atencion.idAtencion) {
-            <div class="card cola-card" [routerLink]="['/attentions', atencion.idAtencion]" style="border-left: 5px solid var(--primary-color); cursor: pointer;">
-                <div class="card-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span class="badge" style="background: #e3f2fd; color: var(--primary-color); padding: 4px 8px; border-radius: 4px;">
-                        Turno #{{ atencion.idAtencion }}
-                    </span>
-                    <span class="time">{{ atencion.fechaAtencion | date:'shortTime' }}</span>
-                </div>
-                <h3 style="margin: 0 0 5px 0;">{{ atencion.mascota.nombre }}</h3>
-                <p style="margin: 0; color: var(--text-light);">{{ atencion.mascota.raza }} - {{ atencion.mascota.especie }}</p>
-                <div class="divider" style="height: 1px; background: #eee; margin: 10px 0;"></div>
-                <p style="font-weight: 500;">{{ atencion.motivo }}</p>
-                <div class="status-badge" style="margin-top: 10px; display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; background: #fff3cd; color: #856404;">
-                    {{ atencion.estado }}
-                </div>
+    <!-- Columna: En Servicio -->
+    <div class="kanban-column">
+      <div class="column-header in-service">
+        <div class="column-title">
+          <span class="column-icon">✂️</span>
+          <span>En Servicio</span>
+        </div>
+        <span class="column-count">{{ getAtencionesByEstado('en_servicio').length }}</span>
+      </div>
+      <div class="column-content">
+        @for (atencion of getAtencionesByEstado('en_servicio'); track atencion.idAtencion) {
+          <div class="atencion-card service-card" [routerLink]="['/atenciones', atencion.idAtencion]">
+            <div class="card-header-row">
+              <span class="turno-badge">Turno #{{ atencion.turnoNum || atencion.idAtencion }}</span>
+              <span class="timer-badge">
+                ⏱️ {{ calculateDuration(atencion.tiempoRealInicio!) }}
+              </span>
             </div>
+
+            <div class="pet-info">
+              <div class="pet-avatar active">
+                {{ getPetInitial(atencion.mascota?.nombre || 'M') }}
+              </div>
+              <div class="pet-details">
+                <h4>{{ atencion.mascota?.nombre || 'Sin nombre' }}</h4>
+                <p>{{ atencion.mascota?.raza || 'Raza no especificada' }}</p>
+              </div>
+            </div>
+
+            <div class="client-row">
+              <span class="client-icon">👤</span>
+              <span>{{ atencion.cliente?.nombre || 'Cliente' }} {{ atencion.cliente?.apellido || '' }}</span>
+            </div>
+
+            <div class="groomer-row">
+              <span class="groomer-icon">👨‍💼</span>
+              <span>{{ atencion.groomer?.nombre || 'Sin asignar' }}</span>
+            </div>
+
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+
+            <div class="card-actions">
+              <button class="btn-action btn-continue" (click)="$event.stopPropagation(); continuarAtencion(atencion.idAtencion!)" title="Continuar">
+                ✏️ Atender
+              </button>
+            </div>
+          </div>
         } @empty {
-            <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px;">
-                <p>No hay pacientes en espera en este momento.</p>
-            </div>
+          <div class="empty-column">
+            <div class="empty-icon">✂️</div>
+            <p>No hay servicios en curso</p>
+          </div>
         }
+      </div>
     </div>
+
+    <!-- Columna: Terminado -->
+    <div class="kanban-column">
+      <div class="column-header completed">
+        <div class="column-title">
+          <span class="column-icon">✅</span>
+          <span>Terminado</span>
+        </div>
+        <span class="column-count">{{ getAtencionesByEstado('terminado').length }}</span>
+      </div>
+      <div class="column-content">
+        @for (atencion of getAtencionesByEstado('terminado'); track atencion.idAtencion) {
+          <div class="atencion-card completed-card" [routerLink]="['/atenciones', atencion.idAtencion]">
+            <div class="card-header-row">
+              <span class="turno-badge">Turno #{{ atencion.turnoNum || atencion.idAtencion }}</span>
+              <span class="done-badge">✓</span>
+            </div>
+
+            <div class="pet-info">
+              <div class="pet-avatar completed">
+                {{ getPetInitial(atencion.mascota?.nombre || 'M') }}
+              </div>
+              <div class="pet-details">
+                <h4>{{ atencion.mascota?.nombre || 'Sin nombre' }}</h4>
+                <p>{{ atencion.mascota?.raza || 'Raza no especificada' }}</p>
+              </div>
+            </div>
+
+            <div class="client-row">
+              <span class="client-icon">👤</span>
+              <span>{{ atencion.cliente?.nombre || 'Cliente' }} {{ atencion.cliente?.apellido || '' }}</span>
+            </div>
+
+            <div class="groomer-row">
+              <span class="groomer-icon">👨‍💼</span>
+              <span>{{ atencion.groomer?.nombre || 'Sin asignar' }}</span>
+            </div>
+
+            <div class="time-row completed-time">
+              <span class="time-icon">✓</span>
+              <span>{{ calculateDuration(atencion.tiempoRealInicio!, atencion.tiempoRealFin!) }}</span>
+            </div>
+
+            <div class="card-actions">
+              <button class="btn-action btn-invoice" (click)="$event.stopPropagation(); generarFactura(atencion.idAtencion!)" title="Generar Factura">
+                💰 Factura
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-column">
+            <div class="empty-icon">📦</div>
+            <p>No hay atenciones terminadas</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
 </div>

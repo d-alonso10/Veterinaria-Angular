@@ -1,0 +1,163 @@
+<div class="main-content">
+  <!-- 🆕 LOADING OVERLAY PARA POLLING -->
+  @if (showLoadingOverlay()) {
+    <div class="loading-overlay">
+      <div class="loading-overlay-content">
+        <div class="spinner-large"></div>
+        <h3>{{ loadingMessage() }}</h3>
+        <p>Por favor espera...</p>
+      </div>
+    </div>
+  }
+
+  <div class="header-section">
+    <div class="header-left">
+      <h2>✨ Nueva Atención</h2>
+      <p class="subtitle">Crear atención desde una cita programada</p>
+    </div>
+    <button class="btn-secondary" (click)="volver()">
+      ← Volver
+    </button>
+  </div>
+
+  <div class="card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando datos...</p>
+      </div>
+    } @else {
+      <form [formGroup]="atencionForm" (ngSubmit)="onSubmit()">
+
+        <!-- Selección de Cita -->
+        <div class="form-section">
+          <h3>📋 Seleccionar Cita</h3>
+          <div class="form-group">
+            <label for="idCita">
+              <span class="label-icon">📅</span>
+              Cita Pendiente *
+            </label>
+            <select
+              id="idCita"
+              formControlName="idCita"
+              (change)="onCitaChange($event)"
+              class="form-select"
+            >
+              <option value="">Seleccione una cita...</option>
+              @for (cita of citasDisponibles(); track cita.idCita) {
+                <option [value]="cita.idCita">
+                  #{{cita.idCita}} - {{cita.nombreMascota}} ({{cita.nombreCliente}}) - {{cita.fechaProgramada | date:'dd/MM/yyyy HH:mm'}}
+                </option>
+              }
+            </select>
+          </div>
+
+          <!-- Info de la Cita Seleccionada -->
+          @if (citaSeleccionada()) {
+            <div class="cita-info">
+              <h4>📋 Información de la Cita</h4>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">🐾 Mascota:</span>
+                  <span class="info-value">{{citaSeleccionada().nombreMascota}}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">👤 Cliente:</span>
+                  <span class="info-value">{{citaSeleccionada().nombreCliente}}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">📝 Motivo:</span>
+                  <span class="info-value">{{citaSeleccionada().motivo || 'No especificado'}}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Detalles de la Atención -->
+        <div class="form-section">
+          <h3>🎯 Detalles de la Atención</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="idGroomer">
+                <span class="label-icon">👨‍💼</span>
+                Groomer Asignado *
+              </label>
+              <select
+                id="idGroomer"
+                formControlName="idGroomer"
+                class="form-select"
+              >
+                <option value="">Seleccione un groomer...</option>
+                @for (groomer of groomersDisponibles(); track groomer.idGroomer) {
+                  <option [value]="groomer.idGroomer">
+                    {{groomer.nombre}}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="turnoNum">
+                <span class="label-icon">#️⃣</span>
+                Turno
+              </label>
+              <div class="input-with-button">
+                <input
+                  type="number"
+                  id="turnoNum"
+                  formControlName="turnoNum"
+                  class="form-input"
+                  min="1"
+                />
+                <button type="button" class="btn-icon" (click)="autoGenerarTurno()" title="Generar nuevo turno">
+                  🔄
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="prioridad">
+              <span class="label-icon">🎯</span>
+              Prioridad *
+            </label>
+            <select
+              id="prioridad"
+              formControlName="prioridad"
+              class="form-select"
+            >
+              <option value="1">⭐⭐⭐⭐⭐ Urgente (1)</option>
+              <option value="2">⭐⭐⭐⭐ Alta (2)</option>
+              <option value="3">⭐⭐⭐ Normal (3)</option>
+              <option value="4">⭐⭐ Baja (4)</option>
+              <option value="5">⭐ Muy Baja (5)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="volver()">
+            ✕ Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="!atencionForm.valid || isProcessing()"
+          >
+            @if (isProcessing()) {
+              <span class="spinner-small"></span>
+              Procesando...
+            } @else {
+              ✅ Crear Atención
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

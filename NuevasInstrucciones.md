@@ -1,153 +1,110 @@
-Aquí tienes el informe técnico detallado:
+Aquí tienes el informe actualizado:
 
 ---
 
-# 🚀 Informe de Estado, Solución de Login y Hoja de Ruta Técnica
+# 🚀 Informe de Estado y Siguientes Pasos - Integración Frontend
 
-Este documento resume el estado actual de la integración Frontend-Backend, soluciona el bloqueo crítico de autenticación y detalla los módulos pendientes de implementación.
+## 1\. ✅ Módulos Estables (NO TOCAR)
 
-## 1\. 🚨 Solución Crítica: Error "Credenciales Incorrectas"
+Los siguientes módulos han sido verificados y funcionan correctamente con el backend actual. **No realizar cambios estructurales en ellos** salvo corrección de bugs menores.
 
-**Diagnóstico:**
-El servicio de Login funciona correctamente (validado en Postman). El error que estás experimentando en el Frontend ("Credenciales incorrectas") no es un bug de código, sino una **discrepancia en los datos de prueba**.
-
-La base de datos contiene contraseñas pre-cargadas que son cadenas de texto literales (ej: `hash_admin123`), no hashes reales encriptados ni la contraseña "123" que probablemente estás intentando usar.
-
-**Solución Inmediata:**
-Para ingresar al sistema desde el Frontend, debes escribir la contraseña **exacta** que figura en la base de datos (el string literal).
-
-**Credenciales Funcionales (Usa estas):**
-
-| Rol               | Email                   | **Contraseña (Escribir tal cual)** |
-| :---------------- | :---------------------- | :--------------------------------- |
-| **Administrador** | `admin@vet.com`         | `hash_admin123`                    |
-| **Recepcionista** | `recepcion.sur@vet.com` | `hash_recep456`                    |
-| **Veterinario**   | `vet.principal@vet.com` | `hash_vet101`                      |
-
-> _Nota Técnica:_ Una vez que logres entrar, el backend detectará que es una contraseña "legacy" y la encriptará automáticamente. En futuros logins, esa contraseña dejará de funcionar y deberás usar la que hayas configurado o restablecido.
+- **Autenticación (`AuthService` / `LoginComponent`):** El flujo de JWT, almacenamiento en LocalStorage y redirección funcionan.
+- **Clientes (`ClientService` / Componentes):** CRUD operativo.
+- **Mascotas (`PetService` / Componentes):** CRUD operativo.
 
 ---
 
-## 2\. 🔍 Revisión de Código Frontend (Code Review)
+## 2\. 🚧 Módulos Pendientes y Guía de Implementación
 
-He analizado tu código Angular (`veterinaria-angular`) y detecté puntos específicos que causarán errores al conectar con el Backend Java. Por favor corrige esto antes de avanzar:
+A continuación se detalla la especificación técnica para completar los módulos faltantes.
 
-### A. Discrepancia en Enums (Selects)
+### A. Módulo de Citas (`AppointmentService`) - _Prioridad Alta_
 
-El Backend es estricto con los valores de los Enums (Case Sensitive). Tu formulario envía valores con mayúscula inicial, pero la BD espera minúsculas.
+Actualmente no esta listando las citas.
 
-- **Archivo:** `src/app/features/pets/mascota-form/mascota-form.component.html`
-- **Corrección requerida:** Cambiar los `value` de los `<option>`.
+**Requerimientos:**
 
-<!-- end list -->
+1.  **Confirmación:** Agregar botón en la lista para confirmar asistencia.
+    - Endpoint: `PUT /api/citas/{id}/confirmar-asistencia`
+2.  **Reprogramación:** Agregar opción para cambiar fecha.
+    - Endpoint: `PUT /api/citas/{id}/reprogramar?nuevaFecha=YYYY-MM-DDTHH:mm:ss`
+    - _Nota:_ Implementar un modal simple o `prompt` para capturar la nueva fecha.
 
-```html
-<option value="Perro">Perro</option>
-<option value="macho">Macho</option>
-<select formControlName="especie">
-  <option value="perro">Perro</option>
-  <option value="gato">Gato</option>
-  <option value="otro">Otro</option>
-</select>
+### B. Módulo de Atención y Cola (`AttentionService`) - _Prioridad Crítica_
 
-<select formControlName="sexo">
-  <option value="macho">Macho</option>
-  <option value="hembra">Hembra</option>
-</select>
-```
+Este es el núcleo operativo (Kanban/Tablero). El servicio base existe, pero falta la lógica de **transición de estados**.
 
-### B. Modelos Desalineados (`models.ts`)
+**Flujo de Trabajo a Implementar:**
 
-Las interfaces en el front no coinciden exactamente con los DTOs del back. Esto romperá las tablas al intentar leer propiedades `undefined`.
+1.  **Recepción (Check-in):**
+    - Ya existe `createFromAppointment` y `createWalkIn`. Verificar que los parámetros se envíen como `HttpParams` (Query String), no en el body JSON, ya que el backend espera `@RequestParam`.
+2.  **Tablero de Cola (`AtencionColaComponent`):**
+    - Mostrar tarjetas con datos: Mascota, Servicio, Estado.
+    - **Botón "Iniciar":** Cambia estado a `en_servicio`.
+      - Endpoint: `PUT /api/atenciones/{id}/estado?nuevoEstado=en_servicio`
+    - **Botón "Finalizar":** Cambia estado a `terminado`.
+      - Endpoint: `PUT /api/atenciones/{id}/terminar`
+      - _Acción:_ Al finalizar, debe redirigir automáticamente a la pantalla de **Facturación**.
 
-- **Interfaz `IAtencion`:**
-  - Front tiene: `fechaAtencion`
-  - Back envía: `createdAt` o `tiempoEstimadoInicio`
-  - _Acción:_ Actualiza `models.ts` para mapear la respuesta real del endpoint `/api/atenciones`.
+### C. Módulo de Facturación (`BillingService`) - _Nuevo_
 
-### C. Rutas de Endpoints (`environment.ts`)
+Componente necesario para cerrar el ciclo de atención.
 
-Asegúrate de que tu `baseUrl` en `environment.ts` apunte a `http://localhost:8080/api` y no solo a `localhost:8080`, o ajusta tus llamadas en los servicios para incluir `/api/` si no está en la base.
+**Pantalla de Facturación (`BillingComponent`):**
 
----
+1.  **Entrada:** Recibe el `idAtencion` (por URL o estado).
+2.  **Formulario:**
+    - Serie: Prellenado o input (ej: "F001").
+    - Número: Prellenado o autogenerado.
+    - Método Pago Sugerido: Select (efectivo, tarjeta, etc.).
+3.  **Acción:** Botón "Generar Factura".
+    - Endpoint: `POST /api/facturas`
+    - Payload (Query Params): `idAtencion`, `serie`, `numero`, `metodoPagoSugerido`.
 
-## 3\. 📋 Hoja de Ruta: Módulos Faltantes
+### D. Módulo de Pagos (`PaymentService`) - _Nuevo_
 
-Basado en el análisis de archivos subidos, estos son los módulos que faltan implementar o completar para alcanzar la paridad con el Backend.
+1.  **Registro de Pago:**
+    - Formulario simple asociado a una factura.
+    - Endpoint: `POST /api/pagos`
+    - Payload: `idFactura`, `monto`, `metodo`, `referencia`.
 
-### 🔴 Prioridad Alta: Operaciones Diarias
+### E. Reportes (`ReporteTiemposComponent`)
 
-#### 1\. Módulo de Citas (`Appointments`) - _Parcialmente implementado_
-
-- **Falta:** Integrar la lógica de cambio de estado (botones de acción en la lista).
-- **Endpoints a conectar:**
-  - `PUT /api/citas/{id}/confirmar-asistencia` (Botón "Confirmar")
-  - `PUT /api/citas/{id}/cancelar` (Botón "Cancelar")
-  - `PUT /api/citas/{id}/reprogramar` (Modal con input de nueva fecha)
-
-#### 2\. Cola de Atención (`Atenciones`) - _Parcialmente implementado_
-
-Tienes `AtencionColaComponent`, pero necesitas asegurar que funcione como un tablero Kanban o Lista en tiempo real.
-
-- **Falta:**
-  - Refresco automático (Polling) cada 30s consultando `GET /api/atenciones/cola/{idSucursal}`.
-  - Botón para avanzar estado: `PUT /api/atenciones/{id}/estado` (de `en_espera` -\> `en_servicio` -\> `terminado`).
-  - **Crucial:** Al pasar a `terminado`, debe redirigir o habilitar la opción de "Generar Factura".
-
-### 🟠 Prioridad Media: Facturación y Pagos (NO IMPLEMENTADO)
-
-No encontré componentes para esto en tu código. Es vital para cerrar el ciclo de negocio.
-
-#### 3\. Facturación (`Billing`)
-
-- **Requerimiento:** Una pantalla o modal que aparezca al terminar una atención.
-- **Endpoints:**
-  - `POST /api/facturas`: Enviar `idAtencion`, `serie` (ej: F001), `numero`, `metodoPagoSugerido`.
-  - `GET /api/facturas/cliente/{id}`: Historial de facturas en el perfil del cliente.
-
-#### 4\. Pagos (`Payments`)
-
-- **Requerimiento:** Poder registrar el cobro de una factura.
-- **Endpoints:**
-  - `POST /api/pagos`: Enviar `idFactura`, `monto`, `metodo` (tarjeta/efectivo).
-
-### 🟡 Prioridad Baja: Administración y Reportes
-
-#### 5\. Catálogos (CRUDs Faltantes)
-
-- **Servicios:** Pantalla para crear/editar precios y servicios (`/api/servicios`).
-- **Groomers:** Gestión de personal y sus horarios.
-
-#### 6\. Reportes
-
-Tienes `reporte-tiempos`, pero el backend ofrece más datos valiosos:
-
-- **Ingresos:** `GET /api/reportes/ingresos` (Gráfico de barras).
-- **Top Clientes:** `GET /api/reportes/clientes-frecuentes` (Tabla).
+- **Ajuste:** El endpoint `/api/groomers/tiempos-promedio` devuelve una lista de arrays de objetos (`Object[]`).
+- **Acción:** Asegurar que el mapeo en el frontend (`.map`) coincida con el orden de los índices del backend:
+  - `[0]`: Nombre Groomer (String)
+  - `[1]`: Total Atenciones (Number) - _Verificar orden exacto con respuesta real_
+  - `[2]`: Tiempo Promedio (Number)
 
 ---
 
-## 4\. Resumen de Endpoints para Copiar/Pegar
+## 3\. Resumen de Endpoints Faltantes (Copy-Paste para Service)
 
-Aquí tienes la referencia rápida de las rutas que necesitas inyectar en tus servicios Angular (`api.service.ts` o específicos):
+Asegúrate de que estos métodos estén implementados en sus respectivos servicios con la firma correcta.
 
 ```typescript
-// Auth
-login: '/api/auth/login';
+// AttentionService
+updateState(id: number, estado: string) {
+  return this.http.put(`/api/atenciones/${id}/estado`, null, {
+    params: { nuevoEstado: estado }
+  });
+}
 
-// Citas
-listar: '/api/citas';
-crear: '/api/citas';
-confirmar: (id) => `/api/citas/${id}/confirmar-asistencia`;
-cancelar: (id) => `/api/citas/${id}/cancelar`;
+finishAttention(id: number) {
+  return this.http.put(`/api/atenciones/${id}/terminar`, {});
+}
 
-// Atenciones
-cola: (idSucursal) => `/api/atenciones/cola/${idSucursal}`;
-crearDesdeCita: '/api/atenciones/desde-cita'; // Usar HttpParams
-crearWalkIn: '/api/atenciones/walk-in'; // Usar HttpParams
-cambiarEstado: (id) => `/api/atenciones/${id}/estado`;
+// BillingService
+createFactura(params: { idAtencion: number, serie: string, numero: string, metodoPagoSugerido: string }) {
+  return this.http.post(`/api/facturas`, null, { params });
+}
 
-// Facturación (NUEVO)
-crearFactura: '/api/facturas';
-registrarPago: '/api/pagos';
+// PaymentService
+registerPayment(params: { idFactura: number, monto: number, metodo: string, referencia: string }) {
+  return this.http.post(`/api/pagos`, null, { params });
+}
 ```
+
+---
+
+**Nota Final:** El login y la gestión de clientes/mascotas están **aprobados**. Concentrar todo el esfuerzo en el flujo: **Cita -\> Atención -\> Factura -\> Pago**.

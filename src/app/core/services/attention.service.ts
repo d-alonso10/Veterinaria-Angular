@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { IAtencion } from '../models/models';
 
@@ -11,67 +11,72 @@ export class AttentionService {
 
   constructor(private apiService: ApiService) { }
 
-  createFromAppointment(params: any): Observable<IAtencion> {
-    // POST /atenciones/desde-cita using query params
-    return this.apiService.post<IAtencion>('/atenciones/desde-cita', null).pipe( // Need to pass params. ApiService.post doesn't support params in options easily?
-        // Wait, ApiService.post signature: post<T>(endpoint, body).
-        // If I need params, I should append them to URL or update ApiService.
-        // Let's append to URL for now as I did with appointments.
-        // Actually, I should construct the URL with params.
-        map(response => response.datos!)
+  // 🔧 CORREGIDO: Ahora maneja null si backend no devuelve la atención
+  createFromAppointment(params: any): Observable<IAtencion | null> {
+    return this.apiService.postFormUrlEncoded<IAtencion>('/api/atenciones/desde-cita', params).pipe(
+      map(response => {
+        console.log('📡 Backend response:', response.datos);
+        return response.datos || null;
+      }),
+      catchError(error => {
+        console.error('❌ Error creando atención:', error);
+        return of(null);
+      })
     );
   }
 
-  // Better implementation: use a helper to build query string or update ApiService.
-  // Given the constraints, I'll append to URL.
-
-  createFromAppointmentWithParams(queryParams: any): Observable<IAtencion> {
-      const queryString = new URLSearchParams(queryParams).toString();
-      return this.apiService.post<IAtencion>(`/atenciones/desde-cita?${queryString}`, {}).pipe(
-          map(response => response.datos!)
-      );
-  }
-
-  createWalkIn(queryParams: any): Observable<IAtencion> {
-      const queryString = new URLSearchParams(queryParams).toString();
-      return this.apiService.post<IAtencion>(`/atenciones/walk-in?${queryString}`, {}).pipe(
-          map(response => response.datos!)
-      );
+  // 🔧 CORREGIDO: Ahora maneja null si backend no devuelve la atención
+  createWalkIn(params: any): Observable<IAtencion | null> {
+    return this.apiService.postFormUrlEncoded<IAtencion>('/api/atenciones/walk-in', params).pipe(
+      map(response => {
+        console.log('📡 Backend response:', response.datos);
+        return response.datos || null;
+      }),
+      catchError(error => {
+        console.error('❌ Error creando atención walk-in:', error);
+        return of(null);
+      })
+    );
   }
 
   getCola(sucursalId: number): Observable<IAtencion[]> {
-    return this.apiService.get<IAtencion[]>(`/atenciones/cola/${sucursalId}`).pipe(
+    return this.apiService.get<IAtencion[]>(`/api/atenciones/cola/${sucursalId}`).pipe(
       map(response => response.datos || [])
     );
   }
 
   getById(id: number): Observable<IAtencion> {
-    return this.apiService.get<IAtencion>(`/atenciones/${id}`).pipe(
+    return this.apiService.get<IAtencion>(`/api/atenciones/${id}`).pipe(
       map(response => response.datos!)
     );
   }
 
   updateState(id: number, nuevoEstado: string): Observable<void> {
-    return this.apiService.put<void>(`/atenciones/${id}/estado?nuevoEstado=${nuevoEstado}`, {}).pipe(
+    return this.apiService.put<void>(`/api/atenciones/${id}/estado`, {}, { nuevoEstado }).pipe(
       map(() => undefined)
     );
   }
 
   finishAttention(id: number): Observable<void> {
-    return this.apiService.put<void>(`/atenciones/${id}/terminar`, {}).pipe(
+    return this.apiService.put<void>(`/api/atenciones/${id}/terminar`, {}).pipe(
       map(() => undefined)
     );
   }
 
   getDetails(id: number): Observable<any[]> {
-      return this.apiService.get<any[]>(`/atenciones/${id}/detalles`).pipe(
+      return this.apiService.get<any[]>(`/api/atenciones/${id}/detalles`).pipe(
           map(response => response.datos || [])
       );
   }
 
   addService(id: number, serviceData: any): Observable<void> {
-      return this.apiService.post<void>(`/atenciones/${id}/detalles`, serviceData).pipe(
+      return this.apiService.post<void>(`/api/atenciones/${id}/detalles`, serviceData).pipe(
           map(() => undefined)
       );
+  }
+
+  // Alias para compatibilidad
+  updateEstado(id: number, nuevoEstado: string): Observable<void> {
+    return this.updateState(id, nuevoEstado);
   }
 }

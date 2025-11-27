@@ -1,55 +1,225 @@
 <div class="main-content">
-    <div class="header-actions" style="margin-bottom: 20px; justify-content: space-between; display: flex;">
-        <h2>Listado de Citas</h2>
-        <a routerLink="/appointments/new" class="btn btn-primary">➕ Nueva Cita</a>
+  <div class="header-actions">
+    <div>
+      <h2>📅 Listado de Citas</h2>
+      <p class="subtitle">Gestiona las citas programadas</p>
+    </div>
+    <a routerLink="/appointments/new" class="btn btn-primary">
+      ➕ Nueva Cita
+    </a>
+  </div>
+
+  <div class="card">
+    <!-- Search Bar -->
+    <div class="search-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar por cliente, mascota o servicio..."
+          [(ngModel)]="searchTerm"
+          (input)="filterCitas()"
+          class="search-input"
+        >
+      </div>
+      <div class="results-count">
+        <span class="count-badge">{{ filteredCitas.length }}</span>
+        {{ filteredCitas.length === 1 ? 'cita encontrada' : 'citas encontradas' }}
+      </div>
     </div>
 
-    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
-                    <th style="padding: 12px;">Fecha</th>
-                    <th style="padding: 12px;">Cliente</th>
-                    <th style="padding: 12px;">Mascota</th>
-                    <th style="padding: 12px;">Servicio</th>
-                    <th style="padding: 12px;">Modalidad</th>
-                    <th style="padding: 12px;">Estado</th>
-                    <th style="padding: 12px;">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (cita of citas; track cita.idCita) {
-                    <tr style="border-bottom: 1px solid #f0f0f0;">
-                        <td style="padding: 12px;">{{ cita.fechaProgramada | date:'medium' }}</td>
-                        <td style="padding: 12px;">{{ cita.nombreCliente || 'Cliente #' + cita.idCliente }}</td>
-                        <td style="padding: 12px;">{{ cita.nombreMascota || 'Mascota #' + cita.idMascota }}</td>
-                        <td style="padding: 12px;">{{ cita.nombreServicio || 'Servicio #' + cita.idServicio }}</td>
-                        <td style="padding: 12px;">{{ cita.modalidad }}</td>
-                        <td style="padding: 12px;">
-                            <span [ngClass]="{
-                                'badge-success': cita.estado === 'confirmada',
-                                'badge-warning': cita.estado === 'reservada',
-                                'badge-danger': cita.estado === 'cancelada'
-                            }" style="padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">
-                                {{ cita.estado }}
-                            </span>
-                        </td>
-                        <td style="padding: 12px;">
-                            @if (cita.estado === 'reservada') {
-                                <button (click)="confirmCita(cita.idCita!)" class="btn btn-success btn-small" style="margin-right: 5px;">Confirmar</button>
-                            }
-                            @if (cita.estado !== 'cancelada' && cita.estado !== 'asistio') {
-                                <button (click)="rescheduleCita(cita.idCita!)" class="btn btn-warning btn-small" style="margin-right: 5px; background-color: #f39c12; color: white; border: none;">Reprogramar</button>
-                                <button (click)="cancelCita(cita.idCita!)" class="btn btn-danger btn-small">Cancelar</button>
-                            }
-                        </td>
-                    </tr>
-                } @empty {
-                    <tr>
-                        <td colspan="7" style="padding: 20px; text-align: center; color: var(--text-light);">No hay citas programadas.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <!-- Appointments Table -->
+    <div class="table-container">
+      <table class="citas-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha & Hora</th>
+            <th>Cliente & Mascota</th>
+            <th>Servicio</th>
+            <th>Modalidad</th>
+            <th>Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cita of filteredCitas; track cita.idCita) {
+            <tr class="cita-row">
+              <td>
+                <div class="cita-id">{{ cita.idCita }}</div>
+              </td>
+              <td>
+                <div class="date-info">
+                  <span class="date-main">📅 {{ cita.fechaProgramada | date:'dd/MM/yyyy' }}</span>
+                  <span class="time-main">🕒 {{ cita.fechaProgramada | date:'h:mm a' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="client-pet-info">
+                  <div class="info-row">
+                    <span class="info-icon">👤</span>
+                    <span class="info-text">{{ cita.nombreCliente || 'Cliente #' + cita.idCliente }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-icon">🐾</span>
+                    <span class="info-text pet-name">{{ cita.nombreMascota || 'Mascota #' + cita.idMascota }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="service-badge">
+                  ✂️ {{ cita.nombreServicio || 'Servicio #' + cita.idServicio }}
+                </div>
+              </td>
+              <td>
+                <span [class]="'modality-badge modality-' + cita.modalidad">
+                  @if (cita.modalidad === 'presencial') {
+                    🏠 Presencial
+                  } @else {
+                    💻 Virtual
+                  }
+                </span>
+              </td>
+              <td>
+                <span [class]="'status-badge status-' + cita.estado">
+                  {{ getStatusLabel(cita.estado!) }}
+                </span>
+              </td>
+              <!-- Acciones según estado -->
+              <td class="text-center">
+                <div class="action-buttons">
+                  @if (cita.estado === 'reservada') {
+                    <button class="btn-action btn-confirm" (click)="confirmCita(cita.idCita!)" title="Confirmar cita">
+                      ✓
+                    </button>
+                  }
+                  @if (cita.estado === 'confirmada') {
+                    <button class="btn-action btn-attend" (click)="crearAtencion(cita.idCita!)" title="Crear atención">
+                      ➕
+                    </button>
+                  }
+                  @if (cita.estado === 'reservada' || cita.estado === 'confirmada') {
+                    <button class="btn-action btn-reschedule" (click)="rescheduleCita(cita.idCita!)" title="Reprogramar">
+                      🔄
+                    </button>
+                    <button class="btn-action btn-cancel" (click)="cancelCita(cita.idCita!)" title="Cancelar">
+                      ✕
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                <div class="empty-content">
+                  <div class="empty-icon">📅</div>
+                  <p>No hay citas programadas</p>
+                  <a routerLink="/appointments/new" class="btn btn-primary-small">Agendar primera cita</a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
+
+    <!-- Pagination Info -->
+    @if (filteredCitas.length > 0) {
+      <div class="table-footer">
+        <span class="footer-text">
+          Mostrando {{ filteredCitas.length }} de {{ citas.length }} citas
+        </span>
+      </div>
+    }
+  </div>
 </div>
+
+<!-- Reschedule Modal -->
+@if (showRescheduleModal && selectedCita) {
+  <div class="modal-overlay" (click)="closeRescheduleModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🔄 Reprogramar Cita</h3>
+        <button class="modal-close" (click)="closeRescheduleModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Current Appointment Info -->
+        <div class="current-info">
+          <h4>Cita Actual</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">👤 Cliente:</span>
+              <span class="info-value">{{ selectedCita.nombreCliente }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">🐾 Mascota:</span>
+              <span class="info-value">{{ selectedCita.nombreMascota }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">✂️ Servicio:</span>
+              <span class="info-value">{{ selectedCita.nombreServicio }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">📅 Fecha Actual:</span>
+              <span class="info-value">{{ selectedCita.fechaProgramada | date:'dd/MM/yyyy h:mm a' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Date/Time Form -->
+        <div class="new-schedule">
+          <h4>Nueva Fecha y Hora</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="newDate">
+                <span class="label-icon">📅</span>
+                Fecha
+              </label>
+              <input
+                type="date"
+                id="newDate"
+                [(ngModel)]="newDate"
+                class="form-input"
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="newTime">
+                <span class="label-icon">🕒</span>
+                Hora
+              </label>
+              <input
+                type="time"
+                id="newTime"
+                [(ngModel)]="newTime"
+                class="form-input"
+                required
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        @if (newDate && newTime) {
+          <div class="preview-section">
+            <div class="preview-icon">✨</div>
+            <div class="preview-text">
+              <span class="preview-label">Nueva cita programada para:</span>
+              <span class="preview-date">{{ newDate | date:'dd/MM/yyyy' }} a las {{ newTime }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeRescheduleModal()">
+          Cancelar
+        </button>
+        <button class="btn-primary-action" (click)="saveReschedule()">
+          💾 Guardar Nueva Fecha
+        </button>
+      </div>
+    </div>
+  </div>
+}

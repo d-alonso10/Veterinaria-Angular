@@ -1,44 +1,229 @@
 <div class="main-content">
-    <div class="header-actions" style="margin-bottom: 20px;">
-        <h2>Generar Factura</h2>
+  <div class="progress-breadcrumb">
+    <span class="step completed">✓ Cita</span>
+    <span class="separator">→</span>
+    <span class="step completed">✓ Atención</span>
+    <span class="separator">→</span>
+    <span class="step active">💰 Factura (3/4)</span>
+    <span class="separator">→</span>
+    <span class="step">💳 Pago</span>
+  </div>
+
+  <div class="header-section">
+    <div class="header-left">
+      <button (click)="volver()" class="btn-back">
+        ← Volver a Atenciones
+      </button>
+      <div class="header-info">
+        <h2>💰 Generar Factura</h2>
+        <p class="subtitle">Crea la factura para la atención completada</p>
+      </div>
     </div>
+  </div>
 
-    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;">
-        @if (attention) {
-            <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
-                <h4>Detalles de Atención #{{ attention.idAtencion }}</h4>
-                <p><strong>Mascota:</strong> {{ attention.mascota.nombre }}</p>
-                <p><strong>Total a Pagar:</strong> S/ {{ attention.costoTotal }}</p>
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando atención...</p>
+    </div>
+  } @else if (attention) {
+    <div class="invoice-content">
+      <div class="left-column">
+        <div class="info-card">
+          <div class="card-header">
+            <span class="card-icon">📋</span>
+            <h3>Detalles de Atención</h3>
+            <span class="attention-badge">#{{ attention.idAtencion }}</span>
+          </div>
+          <div class="card-body">
+            <div class="detail-section">
+              <h4>🐾 Mascota</h4>
+              <div class="detail-row">
+                <span class="detail-label">Nombre:</span>
+                <span class="detail-value">{{ attention.mascota.nombre }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Especie:</span>
+                <span class="species-badge" [class]="'species-' + attention.mascota.especie">
+                  {{ attention.mascota.especie }}
+                </span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Raza:</span>
+                <span class="detail-value">{{ attention.mascota.raza }}</span>
+              </div>
             </div>
-        }
 
-        <form [formGroup]="billingForm" (ngSubmit)="onSubmit()">
-            <div class="form-group">
-                <label>Serie</label>
-                <input type="text" formControlName="serie" class="form-control">
+            <div class="divider"></div>
+
+            <div class="detail-section">
+              <h4>👤 Cliente</h4>
+              <div class="detail-row">
+                <span class="detail-label">Nombre:</span>
+                <span class="detail-value">
+                  {{ attention.cliente?.nombre }} {{ attention.cliente?.apellido }}
+                </span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">DNI/RUC:</span>
+                <span class="detail-value">{{ attention.cliente?.dniRuc || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Teléfono:</span>
+                <span class="detail-value">{{ attention.cliente?.telefono || 'N/A' }}</span>
+              </div>
             </div>
 
-            <div class="form-group">
-                <label>Número</label>
-                <input type="text" formControlName="numero" class="form-control">
-            </div>
+            <div class="divider"></div>
 
-            <div class="form-group">
-                <label>Método de Pago Sugerido</label>
-                <select formControlName="metodoPagoSugerido" class="form-control">
-                    <option value="efectivo">Efectivo</option>
-                    <option value="tarjeta">Tarjeta</option>
-                    <option value="transfer">Transferencia</option>
-                    <option value="yape">Yape/Plin</option>
+            <div class="detail-section">
+              <h4>👨‍💼 Groomer</h4>
+              <div class="detail-row">
+                <span class="detail-label">Atendido por:</span>
+                <span class="detail-value">{{ attention.groomer?.nombre || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="total-card">
+          <div class="total-row">
+            <span class="total-label">Subtotal:</span>
+            <span class="total-value">S/ {{ getSubtotal().toFixed(2) }}</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">IGV (18%):</span>
+            <span class="total-value">S/ {{ (getSubtotal() * 0.18).toFixed(2) }}</span>
+          </div>
+          <div class="divider"></div>
+          <div class="total-row grand-total">
+            <span class="total-label">TOTAL A PAGAR:</span>
+            <span class="total-value">S/ {{ (getSubtotal() * 1.18).toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="form-card">
+          <div class="card-header">
+            <span class="card-icon">📄</span>
+            <h3>Datos de la Factura</h3>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="billingForm" (ngSubmit)="onSubmit()">
+              <div class="form-group">
+                <label class="form-label">
+                  <span class="label-icon">📑</span>
+                  Serie *
+                </label>
+                <input
+                  type="text"
+                  formControlName="serie"
+                  class="form-input"
+                  placeholder="F001"
+                >
+                <div class="form-hint">Ej: F001, B001</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <span class="label-icon">#️⃣</span>
+                  Número de Factura *
+                </label>
+                <input
+                  type="text"
+                  formControlName="numero"
+                  class="form-input"
+                  placeholder="000001"
+                  readonly
+                >
+                <div class="form-hint">Generado automáticamente</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <span class="label-icon">💳</span>
+                  Método de Pago Sugerido *
+                </label>
+                <select formControlName="metodoPagoSugerido" class="form-select">
+                  <option value="efectivo">💵 Efectivo</option>
+                  <option value="tarjeta">💳 Tarjeta</option>
+                  <option value="yape">📱 Yape</option>
+                  <option value="plin">📱 Plin</option>
+                  <option value="transferencia">🏦 Transferencia</option>
                 </select>
-            </div>
+                <div class="form-hint">El cajero podrá cambiar este método al registrar el pago</div>
+              </div>
 
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" (click)="billingForm.reset()">Limpiar</button>
-                <button type="submit" class="btn btn-primary" [disabled]="billingForm.invalid || isLoading">
-                    {{ isLoading ? 'Generando...' : 'Generar Factura' }}
+              <div class="preview-section">
+                <h4>📊 Preview de Factura</h4>
+                <div class="preview-box">
+                  <div class="preview-row">
+                    <span>Serie-Número:</span>
+                    <strong>{{ billingForm.get('serie')?.value }}-{{ billingForm.get('numero')?.value }}</strong>
+                  </div>
+                  <div class="preview-row">
+                    <span>Cliente:</span>
+                    <strong>{{ attention.cliente?.nombre }} {{ attention.cliente?.apellido }}</strong>
+                  </div>
+                  <div class="preview-row">
+                    <span>DNI/RUC:</span>
+                    <strong>{{ attention.cliente?.dniRuc }}</strong>
+                  </div>
+                  <div class="preview-row">
+                    <span>Total:</span>
+                    <strong class="preview-total">S/ {{ (getSubtotal() * 1.18).toFixed(2) }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="volver()"
+                >
+                  ✕ Cancelar
                 </button>
-            </div>
-        </form>
+                <button
+                  type="submit"
+                  class="btn btn-generate"
+                  [disabled]="billingForm.invalid || isLoading"
+                  [class.loading]="isLoading"
+                >
+                  @if (isLoading) {
+                    <span class="btn-spinner"></span>
+                    Generando...
+                  } @else {
+                    ✅ Generar Factura
+                  }
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="info-box">
+          <div class="info-icon">ℹ️</div>
+          <div class="info-content">
+            <h5>¿Qué sigue después?</h5>
+            <p>Una vez generada la factura, podrás:</p>
+            <ul>
+              <li>Registrar el pago del cliente</li>
+              <li>Imprimir el comprobante</li>
+              <li>Enviar por email al cliente</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
+  } @else {
+    <div class="empty-state">
+      <div class="empty-icon">📄</div>
+      <h3>No se encontró la atención</h3>
+      <p>No hay información disponible para generar la factura</p>
+      <button (click)="volver()" class="btn btn-primary">
+        Volver a Atenciones
+      </button>
+    </div>
+  }
 </div>

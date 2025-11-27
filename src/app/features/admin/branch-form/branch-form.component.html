@@ -1,0 +1,70 @@
+<div class="main-content">
+    <div class="header-actions" style="margin-bottom: 20px;">
+        <h2>{{ isEditMode ? 'Editar Sucursal' : 'Nueva Sucursal' }}</h2>
+    </div>
+
+    <div class="card" style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
+        <form [formGroup]="branchForm" (ngSubmit)="onSubmit()">
+
+            <div class="form-group">
+                <label for="nombre">Nombre de Sucursal *</label>
+                <input type="text" id="nombre" formControlName="nombre" class="form-control">
+                @if (branchForm.get('nombre')?.invalid && (branchForm.get('nombre')?.dirty || branchForm.get('nombre')?.touched)) {
+                    <div class="error-message">El nombre es requerido</div>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="direccion">Dirección *</label>
+                <input type="text" id="direccion" formControlName="direccion" class="form-control">
+                @if (branchForm.get('direccion')?.invalid && (branchForm.get('direccion')?.dirty || branchForm.get('direccion')?.touched)) {
+                    <div class="error-message">La dirección es requerida</div>
+                }
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label for="telefono">Teléfono *</label>
+                    <input type="text" id="telefono" formControlName="telefono" class="form-control">
+                    @if (branchForm.get('telefono')?.invalid && (branchForm.get('telefono')?.dirty || branchForm.get('telefono')?.touched)) {
+                        <div class="error-message">El teléfono es requerido</div>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" formControlName="email" class="form-control">
+                    @if (branchForm.get('email')?.invalid && (branchForm.get('email')?.dirty || branchForm.get('email')?.touched)) {
+                        <div class="error-message">Ingrese un email válido</div>
+                    }
+                </div>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label for="horarioApertura">Horario Apertura</label>
+                    <input type="time" id="horarioApertura" formControlName="horarioApertura" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="horarioCierre">Horario Cierre</label>
+                    <input type="time" id="horarioCierre" formControlName="horarioCierre" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" formControlName="activo" style="margin-right: 8px;">
+                    Sucursal activa
+                </label>
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px;">
+                <button type="button" routerLink="/admin/branches" class="btn btn-secondary" style="background-color: #95a5a6; color: white;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" [disabled]="branchForm.invalid || isLoading">
+                    {{ isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear Sucursal') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

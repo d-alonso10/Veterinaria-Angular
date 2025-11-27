@@ -9,37 +9,37 @@ export class AppointmentService {
   constructor(private api: ApiService) {}
 
   getAll(): Observable<ICita[]> {
-    return this.api.get<ICita[]>('/citas').pipe(
+    return this.api.get<ICita[]>('/api/citas').pipe(
       map(response => response.datos || [])
     );
   }
 
   getProximasByClient(clientId: number): Observable<ICita[]> {
-    return this.api.get<ICita[]>(`/citas/cliente/${clientId}/proximas`).pipe(
+    return this.api.get<ICita[]>(`/api/citas/cliente/${clientId}/proximas`).pipe(
       map(response => response.datos || [])
     );
   }
 
   create(cita: ICita): Observable<ICita> {
-    return this.api.post<ICita>('/citas', cita).pipe(
+    return this.api.post<ICita>('/api/citas', cita).pipe(
       map(response => response.datos!)
     );
   }
 
   confirm(id: number): Observable<void> {
-    return this.api.put<void>(`/citas/${id}/confirmar-asistencia`).pipe(
+    return this.api.put<void>(`/api/citas/${id}/confirmar-asistencia`).pipe(
       map(() => undefined)
     );
   }
 
   cancel(id: number): Observable<void> {
-    return this.api.put<void>(`/citas/${id}/cancelar`).pipe(
+    return this.api.put<void>(`/api/citas/${id}/cancelar`).pipe(
       map(() => undefined)
     );
   }
 
   reschedule(id: number, nuevaFecha: string): Observable<void> {
-    return this.api.put<void>(`/citas/${id}/reprogramar?nuevaFecha=${nuevaFecha}`, {}).pipe(
+    return this.api.put<void>(`/api/citas/${id}/reprogramar`, {}, { nuevaFecha }).pipe(
       map(() => undefined)
     );
   }

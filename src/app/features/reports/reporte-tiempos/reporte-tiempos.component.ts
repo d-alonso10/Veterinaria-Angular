@@ -24,7 +24,7 @@ export class ReporteTiemposComponent implements OnInit {
     this.isLoading = true;
     // The backend returns List<Object[]>, we need to map it manually if it's not a clean JSON object
     // Assuming the API returns a standard ApiResponse with datos as the list of objects
-    this.apiService.get<any[]>('/groomers/tiempos-promedio').subscribe({
+    this.apiService.get<any[]>('/api/groomers/tiempos-promedio').subscribe({
       next: (response: any) => {
         this.isLoading = false;
         if (response.exito && response.datos) {
@@ -32,12 +32,12 @@ export class ReporteTiemposComponent implements OnInit {
           // Assuming structure: [groomerName, averageTime, count]
           this.tiempos = response.datos.map((item: any[]) => ({
             groomer: item[0],
-            tiempoPromedio: item[1],
-            cantidadAtenciones: item[2]
+            cantidadAtenciones: item[1],
+            tiempoPromedio: item[2]
           }));
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoading = false;
         console.error('Error loading report', err);
       }

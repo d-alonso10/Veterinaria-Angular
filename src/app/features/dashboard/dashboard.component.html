@@ -1,88 +1,180 @@
-<div class="main-content">
+<div class="dashboard-container">
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando dashboard...</p>
+    </div>
+  }
 
-    <!-- Mensajes -->
-    <!-- <div class="message-banner exito">
-        Operación completada exitosamente
-    </div> -->
-
-    <!-- Estadísticas -->
-    <div class="stats-container">
-
-        <div class="stat-card floating">
-            <span class="stat-icon">📅</span>
-            <div class="stat-number">{{ citasHoy }}</div>
-            <div class="stat-label">Citas del Día</div>
-        </div>
-
-        <div class="stat-card floating" style="animation-delay: 0.2s;">
-            <span class="stat-icon">⚡</span>
-            <div class="stat-number">{{ atencionesEnCurso }}</div>
-            <div class="stat-label">Atenciones en Curso</div>
-        </div>
-
-        <div class="stat-card floating" style="animation-delay: 0.4s;">
-            <span class="stat-icon">💰</span>
-            <div class="stat-number">{{ ingresosDia | currency:'PEN':'symbol':'1.2-2' }}</div>
-            <div class="stat-label">Ingresos del Día</div>
-        </div>
-
-        <div class="stat-card floating" style="animation-delay: 0.6s;">
-            <span class="stat-icon">👥</span>
-            <div class="stat-number">{{ totalClientes }}</div>
-            <div class="stat-label">Total Clientes</div>
-        </div>
+  <!-- Main Metrics Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card metric-primary">
+      <div class="metric-icon">👥</div>
+      <div class="metric-content">
+        <h3>Total Clientes</h3>
+        <p class="metric-value">{{ totalClientes }}</p>
+      </div>
     </div>
 
-    <!-- Acciones Rápidas -->
-    <div class="quick-actions">
-        <div class="action-card">
-            <span class="action-icon">📅</span>
-            <div class="action-title">Agendar Cita</div>
-            <div class="action-description">Programar nueva cita para cliente</div>
-            <a routerLink="/appointments/new" class="btn btn-primary btn-small">Acceder</a>
-        </div>
-        <div class="action-card">
-            <span class="action-icon">👤</span>
-            <div class="action-title">Nuevo Cliente</div>
-            <div class="action-description">Registrar nuevo cliente en el sistema</div>
-            <a routerLink="/clients/new" class="btn btn-success btn-small">Registrar</a>
-        </div>
-        <div class="action-card">
-            <span class="action-icon">🐾</span>
-            <div class="action-title">Registrar Mascota</div>
-            <div class="action-description">Agregar mascota a cliente existente</div>
-            <a routerLink="/pets/new" class="btn btn-info btn-small">Gestionar</a>
-        </div>
-        <div class="action-card">
-            <span class="action-icon">💳</span>
-            <div class="action-title">Registrar Pago</div>
-            <div class="action-description">Procesar pago de servicios</div>
-            <a routerLink="/payments/new" class="btn btn-warning btn-small">Pagar</a>
-        </div>
+    <div class="metric-card metric-success">
+      <div class="metric-icon">📅</div>
+      <div class="metric-content">
+        <h3>Citas Hoy</h3>
+        <p class="metric-value">{{ citasHoy }}</p>
+      </div>
     </div>
 
-    <!-- Top Clientes -->
-    <div class="card" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-top: 20px;">
-        <h3>Clientes Frecuentes</h3>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <thead>
-                <tr style="text-align: left; border-bottom: 1px solid #eee;">
-                    <th style="padding: 8px;">Cliente</th>
-                    <th style="padding: 8px;">Visitas</th>
+    <div class="metric-card metric-warning">
+      <div class="metric-icon">💰</div>
+      <div class="metric-content">
+        <h3>Ingresos del Día</h3>
+        <p class="metric-value">S/ {{ ingresosDia | number:'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <div class="metric-card metric-info">
+      <div class="metric-icon">⏱️</div>
+      <div class="metric-content">
+        <h3>Atenciones en Curso</h3>
+        <p class="metric-value">{{ atencionesEnCurso }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Queue and Statistics Row -->
+  <div class="dashboard-row">
+    <!-- Queue Table -->
+    <div class="dashboard-card cola-card">
+      <div class="card-header">
+        <h2>📋 Cola de Atención</h2>
+        <span class="badge">En vivo</span>
+      </div>
+      <div class="card-body">
+        @if (colaData.length > 0) {
+          <div class="queue-table-container">
+            <table class="queue-table">
+              <thead>
+                <tr>
+                  <th>Turno</th>
+                  <th>Mascota</th>
+                  <th>Cliente</th>
+                  <th>Groomer</th>
+                  <th>Estado</th>
                 </tr>
-            </thead>
-            <tbody>
-                @for (cliente of topClientes; track $index) {
-                    <tr style="border-bottom: 1px solid #f9f9f9;">
-                        <td style="padding: 8px;">{{ cliente.nombre }} {{ cliente.apellido }}</td>
-                        <td style="padding: 8px;">{{ cliente.cantidad_visitas || cliente.visitas }}</td>
-                    </tr>
-                } @empty {
-                    <tr>
-                        <td colspan="2" style="padding: 10px; text-align: center; color: #888;">No hay datos disponibles</td>
-                    </tr>
+              </thead>
+              <tbody>
+                @for (item of colaData; track item.id_atencion) {
+                  <tr>
+                    <td class="turno-cell">#{{ item.turno_num }}</td>
+                    <td class="mascota-cell">🐾 {{ item.mascota }}</td>
+                    <td>{{ item.cliente }}</td>
+                    <td>{{ item.groomer || '⏳ Sin asignar' }}</td>
+                    <td>
+                      <span [class]="'status-badge ' + getEstadoBadgeClass(item.estado)">
+                        {{ item.estado }}
+                      </span>
+                    </td>
+                  </tr>
                 }
-            </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">
+            <p>✅ No hay atenciones en cola</p>
+          </div>
+        }
+      </div>
     </div>
+
+    <!-- Monthly Statistics Chart -->
+    <div class="dashboard-card stats-card">
+      <div class="card-header">
+        <h2>📊 Estadísticas del Mes</h2>
+      </div>
+      <div class="card-body">
+        @if (estadisticasData) {
+          <div class="stats-chart">
+            <div class="stat-bar-item">
+              <div class="stat-label">
+                <span class="stat-icon">💵</span>
+                <span>Total Facturado</span>
+              </div>
+              <div class="stat-bar-container">
+                <div class="stat-bar"
+                     [style.width.%]="getBarPercentage(estadisticasData.total_facturado)"
+                     style="background: linear-gradient(90deg, #27ae60, #2ecc71);">
+                </div>
+              </div>
+              <span class="stat-value">S/ {{ estadisticasData.total_facturado | number:'1.2-2' }}</span>
+            </div>
+
+            <div class="stat-bar-item">
+              <div class="stat-label">
+                <span class="stat-icon">👤</span>
+                <span>Clientes Nuevos</span>
+              </div>
+              <div class="stat-bar-container">
+                <div class="stat-bar"
+                     [style.width.%]="getBarPercentage(estadisticasData.clientes_nuevos)"
+                     style="background: linear-gradient(90deg, #3498db, #5dade2);">
+                </div>
+              </div>
+              <span class="stat-value">{{ estadisticasData.clientes_nuevos }}</span>
+            </div>
+
+            <div class="stat-bar-item">
+              <div class="stat-label">
+                <span class="stat-icon">✂️</span>
+                <span>Atenciones</span>
+              </div>
+              <div class="stat-bar-container">
+                <div class="stat-bar"
+                     [style.width.%]="getBarPercentage(estadisticasData.atenciones_realizadas)"
+                     style="background: linear-gradient(90deg, #9b59b6, #bb8fce);">
+                </div>
+              </div>
+              <span class="stat-value">{{ estadisticasData.atenciones_realizadas }}</span>
+            </div>
+
+            <div class="stat-bar-item">
+              <div class="stat-label">
+                <span class="stat-icon">⭐</span>
+                <span>Servicio Popular</span>
+              </div>
+              <span class="stat-value popular-service">{{ estadisticasData.servicio_popular || 'N/A' }}</span>
+            </div>
+          </div>
+        } @else {
+          <div class="empty-state">
+            <p>📊 No hay estadísticas disponibles</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Income Trend Chart -->
+  <div class="dashboard-card income-card">
+    <div class="card-header">
+      <h2>💸 Tendencia de Ingresos</h2>
+      <span class="subtitle">Del mes actual</span>
+    </div>
+    <div class="card-body">
+      @if (ingresosData.length > 0) {
+        <div class="chart-container">
+          <canvas baseChart
+                  [data]="incomeChartData"
+                  [options]="incomeChartOptions"
+                  [type]="'line'">
+          </canvas>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <p>📈 No hay datos de ingresos disponibles</p>
+        </div>
+      }
+    </div>
+  </div>
 </div>

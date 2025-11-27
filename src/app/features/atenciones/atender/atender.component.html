@@ -1,0 +1,337 @@
+<div class="main-content">
+  <!-- Indicador de Progreso -->
+  <div class="progress-breadcrumb">
+    <span class="step completed">✓ Cita</span>
+    <span class="separator">→</span>
+    <span class="step active">📋 Atención (2/4)</span>
+    <span class="separator">→</span>
+    <span class="step">💰 Factura</span>
+    <span class="separator">→</span>
+    <span class="step">💳 Pago</span>
+  </div>
+
+  <!-- Header con Info Básica -->
+  <div class="attention-header">
+    <div class="header-left">
+      <button (click)="volverACola()" class="btn-back">
+        ← Volver a Cola
+      </button>
+      <div class="header-info">
+        <h2>🏥 Atención en Curso</h2>
+        <p class="turno-info">Turno #{{ atencion?.turnoNum }} - {{ atencion?.estado | titlecase }}</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="timer-widget">
+        <span class="timer-icon">⏱️</span>
+        <div class="timer-info">
+          <span class="timer-label">Tiempo transcurrido</span>
+          <span class="timer-value">{{ tiempoTranscurrido }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando atención...</p>
+    </div>
+  } @else if (atencion) {
+    <div class="attention-content">
+      <!-- Columna Izquierda: Info del Cliente y Mascota -->
+      <div class="left-column">
+        <!-- Card Cliente -->
+        <div class="info-card">
+          <div class="card-header">
+            <span class="card-icon">👤</span>
+            <h3>Cliente</h3>
+          </div>
+          <div class="card-body">
+            <div class="client-avatar">
+              {{ getClientInitials() }}
+            </div>
+            <div class="client-details">
+              <h4>{{ atencion.cliente?.nombre }} {{ atencion.cliente?.apellido }}</h4>
+              <div class="detail-row">
+                <span class="detail-label">DNI/RUC:</span>
+                <span class="detail-value">{{ atencion.cliente?.dniRuc || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Teléfono:</span>
+                <span class="detail-value">{{ atencion.cliente?.telefono || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">{{ atencion.cliente?.email || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Mascota -->
+        <div class="info-card">
+          <div class="card-header">
+            <span class="card-icon">🐾</span>
+            <h3>Mascota</h3>
+          </div>
+          <div class="card-body">
+            <div class="pet-avatar">
+              {{ (atencion.mascota.nombre || 'M').charAt(0).toUpperCase() }}
+            </div>
+            <div class="pet-details">
+              <h4>{{ atencion.mascota?.nombre }}</h4>
+              <div class="detail-row">
+                <span class="detail-label">Especie:</span>
+                <span class="species-badge" [class]="'species-' + atencion.mascota?.especie">
+                  {{ atencion.mascota?.especie }}
+                </span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Raza:</span>
+                <span class="detail-value">{{ atencion.mascota?.raza }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Sexo:</span>
+                <span class="detail-value">{{ atencion.mascota?.sexo === 'macho' ? '♂ Macho' : '♀ Hembra' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Edad:</span>
+                <span class="detail-value">{{ calculateAge(atencion.mascota?.fechaNacimiento!) }} años</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Groomer -->
+        <div class="info-card">
+          <div class="card-header">
+            <span class="card-icon">👨‍💼</span>
+            <h3>Groomer Asignado</h3>
+          </div>
+          <div class="card-body">
+            <div class="groomer-info">
+              <div class="groomer-avatar">
+                {{ getGroomerInitials() }}
+              </div>
+              <div class="groomer-details">
+                <h4>{{ atencion.groomer?.nombre || 'Sin asignar' }}</h4>
+                <span class="groomer-status">✓ Activo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Servicios -->
+      <div class="right-column">
+        <!-- 🆕 ETAPA B: ESTADO EN ESPERA -->
+        @if (atencion && atencion.estado === 'en_espera' && !servicioEnCurso()) {
+          <div class="status-alert en-espera">
+            <div class="alert-icon">⏳</div>
+            <div class="alert-content">
+              <h4>Atención en Espera</h4>
+              <p>El groomer aún no ha iniciado el servicio</p>
+              <button
+                (click)="iniciarServicio()"
+                [disabled]="isProcessing()"
+                class="btn btn-primary btn-large"
+              >
+                @if (isProcessing()) {
+                  <span class="btn-spinner"></span>
+                  Iniciando...
+                } @else {
+                  ▶️ INICIAR SERVICIO
+                }
+              </button>
+            </div>
+            <div class="alert-hint">
+              <p>Los controles de servicios se habilitarán una vez inicie el servicio</p>
+            </div>
+          </div>
+        }
+
+        <!-- Agregar Servicio -->
+        <div class="service-form-card" [class.disabled]="!servicioEnCurso() && atencion && atencion.estado === 'en_espera'">
+          <div class="card-header">
+            <span class="card-icon">✂️</span>
+            <h3>Agregar Servicio Realizado</h3>
+            @if (!servicioEnCurso() && atencion && atencion.estado === 'en_espera') {
+              <span class="card-badge">Bloqueado</span>
+            }
+          </div>
+          <div class="card-body" [class.disabled-overlay]="!servicioEnCurso() && atencion && atencion.estado === 'en_espera'">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label>Servicio *</label>
+                <select [(ngModel)]="nuevoServicio.idServicio" (change)="onServicioChange()" class="form-select">
+                  <option value="">Seleccione un servicio...</option>
+                  @for (servicio of serviciosDisponibles(); track servicio.idServicio) {
+                    <option [value]="servicio.idServicio">
+                      {{ servicio.nombre }} - S/ {{ servicio.precioBase }}
+                    </option>
+                  }
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label>Cantidad *</label>
+                <input
+                  type="number"
+                  [(ngModel)]="nuevoServicio.cantidad"
+                  (input)="calcularSubtotal()"
+                  min="1"
+                  class="form-input"
+                >
+              </div>
+              <div class="form-group flex-1">
+                <label>Precio Unit. *</label>
+                <input
+                  type="number"
+                  [(ngModel)]="nuevoServicio.precioUnitario"
+                  (input)="calcularSubtotal()"
+                  step="0.01"
+                  class="form-input"
+                >
+              </div>
+              <div class="form-group flex-1">
+                <label>Subtotal</label>
+                <input
+                  type="text"
+                  [value]="'S/ ' + nuevoServicio.subtotal.toFixed(2)"
+                  readonly
+                  class="form-input readonly"
+                >
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label>Observaciones</label>
+                <textarea
+                  [(ngModel)]="nuevoServicio.observaciones"
+                  rows="2"
+                  class="form-textarea"
+                  placeholder="Detalles adicionales del servicio..."
+                ></textarea>
+              </div>
+            </div>
+            <button
+              (click)="agregarServicio()"
+              [disabled]="!nuevoServicio.idServicio || (!servicioEnCurso() && atencion && atencion.estado === 'en_espera')"
+              class="btn btn-add-service"
+            >
+              ➕ Agregar Servicio
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla de Servicios Realizados -->
+        <div class="services-table-card">
+          <div class="card-header">
+            <span class="card-icon">📋</span>
+            <h3>Servicios Realizados</h3>
+            <span class="services-count">{{ serviciosRealizados().length }}</span>
+          </div>
+          <div class="card-body">
+            @if (serviciosRealizados().length > 0) {
+              <table class="services-table">
+                <thead>
+                  <tr>
+                    <th>Servicio</th>
+                    <th>Cant.</th>
+                    <th>Precio</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (servicio of serviciosRealizados(); track servicio.idDetalle) {
+                    <tr>
+                      <td>
+                        <div class="service-name">{{ servicio.servicio?.nombre }}</div>
+                        @if (servicio.observaciones) {
+                          <div class="service-obs">{{ servicio.observaciones }}</div>
+                        }
+                      </td>
+                      <td class="text-center">{{ servicio.cantidad }}</td>
+                      <td>S/ {{ servicio.precioUnitario?.toFixed(2) }}</td>
+                      <td class="text-bold">S/ {{ servicio.subtotal?.toFixed(2) }}</td>
+                      <td class="text-center">
+                        <button
+                          (click)="eliminarServicio(servicio.idDetalle!)"
+                          class="btn-delete-small"
+                          title="Eliminar"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr class="total-row">
+                    <td colspan="3" class="text-right"><strong>SUBTOTAL:</strong></td>
+                    <td class="text-bold">S/ {{ calcularTotalServicios().toFixed(2) }}</td>
+                    <td></td>
+                  </tr>
+                  <tr class="tax-row">
+                    <td colspan="3" class="text-right">IGV (18%):</td>
+                    <td>S/ {{ (calcularTotalServicios() * 0.18).toFixed(2) }}</td>
+                    <td></td>
+                  </tr>
+                  <tr class="grand-total-row">
+                    <td colspan="3" class="text-right"><strong>TOTAL:</strong></td>
+                    <td class="text-bold grand-total">S/ {{ (calcularTotalServicios() * 1.18).toFixed(2) }}</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            } @else {
+              <div class="empty-services">
+                <div class="empty-icon">✂️</div>
+                <p>No se han agregado servicios</p>
+                <p class="empty-hint">Agrega al menos un servicio antes de terminar la atención</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Observaciones Generales -->
+        <div class="observations-card">
+          <div class="card-header">
+            <span class="card-icon">📝</span>
+            <h3>Observaciones Generales</h3>
+          </div>
+          <div class="card-body">
+            <textarea
+              [(ngModel)]="observacionesGenerales"
+              rows="3"
+              class="form-textarea"
+              placeholder="Observaciones sobre la atención..."
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="action-buttons">
+          <button (click)="volverACola()" class="btn btn-secondary">
+            ✕ Cancelar
+          </button>
+          <button
+            (click)="terminarAtencion()"
+            [disabled]="serviciosRealizados().length === 0 || isProcessing() || (!servicioEnCurso() && atencion && atencion.estado === 'en_espera')"
+            class="btn btn-terminar"
+            [class.loading]="isProcessing()"
+            [title]="serviciosRealizados().length === 0 ? 'Agrega al menos un servicio' : ''"
+          >
+            @if (isProcessing()) {
+              <span class="btn-spinner"></span>
+              Procesando...
+            } @else {
+              ✅ Terminar Atención
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -110,13 +110,13 @@ export class ReceptionComponent implements OnInit {
         prioridad: 'normal'
       };
 
-      this.attentionService.createFromAppointmentWithParams(params).subscribe({
+      this.attentionService.createFromAppointment(params).subscribe({
         next: () => {
           this.isLoading = false;
           this.notificationService.success('Atención iniciada');
           this.router.navigate(['/queue']);
         },
-        error: (err) => {
+        error: (err: any) => {
           this.isLoading = false;
           console.error('Error starting attention', err);
           this.notificationService.error('Error al iniciar atención');
@@ -143,7 +143,7 @@ export class ReceptionComponent implements OnInit {
           this.notificationService.success('Atención Walk-In iniciada');
           this.router.navigate(['/queue']);
         },
-        error: (err) => {
+        error: (err: any) => {
           this.isLoading = false;
           console.error('Error starting walk-in', err);
           this.notificationService.error('Error al iniciar atención');

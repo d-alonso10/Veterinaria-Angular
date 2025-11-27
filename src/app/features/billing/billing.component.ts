@@ -18,6 +18,7 @@ export class BillingComponent implements OnInit {
   billingForm: FormGroup;
   attentionId: number | null = null;
   attention: IAtencion | null = null;
+  serviceDetails: any[] = []; // Detalles de servicios realizados
   isLoading = false;
 
   constructor(
@@ -36,13 +37,19 @@ export class BillingComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('attentionId');
-      if (id) {
-        this.attentionId = Number(id);
-        this.loadAttention(this.attentionId);
-      }
-    });
+    // Leer idAtencion desde route params (ruta: /billing/new/:attentionId) o query params (ruta: /billing?idAtencion=X)
+    const routeId = this.route.snapshot.paramMap.get('attentionId');
+    const queryId = this.route.snapshot.queryParamMap.get('idAtencion');
+
+    const attentionId = routeId || queryId;
+
+    if (attentionId) {
+      this.attentionId = Number(attentionId);
+      this.loadAttention(this.attentionId);
+    } else {
+      this.notificationService.error('No se especificó una atención');
+      this.router.navigate(['/atenciones']);
+    }
   }
 
   loadAttention(id: number) {
@@ -53,25 +60,50 @@ export class BillingComponent implements OnInit {
         this.billingForm.patchValue({
           numero: Date.now().toString().slice(-6)
         });
+
+        // Cargar detalles de servicios realizados
+        this.loadServiceDetails(id);
       },
       error: () => this.notificationService.error('Error al cargar la atención')
     });
   }
 
+  loadServiceDetails(id: number) {
+    this.attentionService.getDetails(id).subscribe({
+      next: (details) => {
+        this.serviceDetails = details;
+        console.log('📋 Servicios cargados:', details);
+      },
+      error: (err) => {
+        console.error('Error cargando detalles:', err);
+        this.notificationService.error('Error al cargar servicios');
+      }
+    });
+  }
+
+  getSubtotal(): number {
+    return this.serviceDetails.reduce((sum, detail) => sum + (detail.subtotal || 0), 0);
+  }
+
   onSubmit() {
     if (this.billingForm.valid && this.attentionId) {
       this.isLoading = true;
-      const facturaData: IFactura = {
-        idAtencion: this.attentionId,
-        ...this.billingForm.value,
-        estado: 'pendiente'
-      };
+      const formValue = this.billingForm.value;
 
-      this.billingService.createFactura(facturaData).subscribe({
+      this.billingService.createFactura(
+        this.attentionId,
+        formValue.serie,
+        formValue.numero,
+        formValue.metodoPagoSugerido
+      ).subscribe({
         next: (factura: IFactura) => {
           this.isLoading = false;
-          this.notificationService.success('Factura generada correctamente');
-          this.router.navigate(['/payments/new', factura.idFactura]);
+          this.notificationService.success('Factura generada. Redirigiendo a registro de pago...');
+
+          // Redirección con retraso para UX
+          setTimeout(() => {
+            this.router.navigate(['/payments/new', factura.idFactura]);
+          }, 1000);
         },
         error: (err: any) => {
           this.isLoading = false;
@@ -80,5 +112,9 @@ export class BillingComponent implements OnInit {
         }
       });
     }
+  }
+
+  volver() {
+    this.router.navigate(['/atenciones']);
   }
 }

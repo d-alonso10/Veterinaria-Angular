@@ -1,5 +1,16 @@
 import { Cliente } from './client.model';
 
+export interface ICliente {
+  idCliente?: number;
+  nombre: string;
+  apellido: string;
+  dniRuc?: string;
+  email: string;
+  telefono: string;
+  direccion?: string;
+  preferencias?: string;
+}
+
 export interface IMascota {
   idMascota?: number;
   nombre: string;
@@ -14,17 +25,27 @@ export interface IMascota {
 export interface IAtencion {
   idAtencion?: number;
   mascota: IMascota;
+  cliente?: ICliente;  // Cliente completo anidado
+  groomer?: any;  // Groomer completo anidado
+  cita?: any;  // Cita completa anidada
   fechaAtencion?: string; // Keep for compatibility if needed
   createdAt?: string; // Backend field
+  updatedAt?: string;
   tiempoEstimadoInicio?: string; // Backend field
-  motivo: string;
+  tiempoEstimadoFin?: string;
+  tiempoRealInicio?: string | null;
+  tiempoRealFin?: string | null;
+  motivo?: string;
   diagnostico?: string;
   tratamiento?: string;
-  costoTotal: number;
+  observaciones?: string;
+  costoTotal?: number;
   estado: 'en_espera' | 'en_servicio' | 'pausado' | 'terminado';
   idGroomer?: number;
   idSucursal?: number;
+  idCita?: number;
   turnoNum?: number;
+  prioridad?: number;  // 1-5
 }
 
 export interface IReporteIngresos {
@@ -67,7 +88,7 @@ export interface ICita {
   idServicio: number;
   fechaProgramada: string; // LocalDateTime string
   modalidad: 'presencial' | 'virtual';
-  estado?: 'reservada' | 'confirmada' | 'asistio' | 'cancelada' | 'no_show';
+  estado?: 'reservada' | 'confirmada' | 'asistio' | 'atendido' | 'cancelada' | 'no_show';
   notas?: string;
   // Campos expandidos para mostrar en tablas (si el backend los devuelve poblados)
   nombreMascota?: string;
@@ -77,13 +98,20 @@ export interface ICita {
 
 export interface IFactura {
   idFactura?: number;
-  idAtencion: number;
   serie: string;
   numero: string;
-  metodoPagoSugerido: string;
-  estado: 'pendiente' | 'confirmado' | 'anulado';
+  atencion?: IAtencion;  // Atención completa anidada
+  cliente?: ICliente;  // Cliente duplicado del backend
+  idAtencion?: number;
   fechaEmision?: string;
+  subtotal?: number;
+  impuesto?: number;  // IGV 18%
+  descuentoTotal?: number;
   total?: number;
+  estado?: 'emitida' | 'pagada' | 'anulada';
+  metodoPagoSugerido?: string;  // efectivo, tarjeta, yape, plin
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface IPago {
