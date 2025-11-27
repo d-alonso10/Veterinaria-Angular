@@ -42,7 +42,7 @@
 
 .main-content {
   padding: 30px;
-  max-width: 1400px; /* Reducido de 1600px para mejor visualización */
+  max-width: 1000px; /* Alineado con el ancho del header */
   margin: 0 auto;
   min-height: calc(100vh - 100px);
 }

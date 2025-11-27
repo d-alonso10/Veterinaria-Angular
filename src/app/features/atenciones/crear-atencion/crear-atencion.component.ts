@@ -126,6 +126,23 @@ export class CrearAtencionComponent implements OnInit {
     this.showLoadingOverlay.set(true);
     this.loadingMessage.set('Creando atención y sincronizando con el servidor...');
 
+    const now = new Date();
+    const endTime = new Date(now.getTime() + 90 * 60000); // 1.5 horas después
+
+    const params = {
+      idCita: formValue.idCita,
+      idGroomer: formValue.idGroomer,
+      idSucursal: formValue.idSucursal,
+      turnoNum: formValue.turnoNum,
+      tiempoEstimadoInicio: now.toISOString(),
+      tiempoEstimadoFin: endTime.toISOString(),
+      prioridad: formValue.prioridad
+    };
+
+    this.isProcessing.set(true);
+    this.showLoadingOverlay.set(true);
+    this.loadingMessage.set('Creando atención y sincronizando con el servidor...');
+
     // 🔧 ESTRATEGIA HÍBRIDA: Si backend devuelve atención, úsala. Si no, haz polling
     this.attentionService.createFromAppointment(params).pipe(
       switchMap((atencion: any) => {
